@@ -3,8 +3,7 @@ import 'package:get/get.dart';
 import 'package:q45gofna6/feature/onboarding/view/welcome_screen.dart';
 import '../../../core/constant/image_path.dart';
 
-class OnboardingController extends GetxController
-    with GetSingleTickerProviderStateMixin {
+class OnboardingController extends GetxController with GetSingleTickerProviderStateMixin {
   final PageController pageController = PageController();
   var currentPage = 0.obs;
   var showContent = false.obs;

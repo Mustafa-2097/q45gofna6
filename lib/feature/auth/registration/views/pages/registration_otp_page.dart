@@ -1,11 +1,14 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:q45gofna6/core/constant/app_colors.dart';
 import 'package:q45gofna6/core/constant/app_text_styles.dart';
 import 'package:q45gofna6/core/constant/widgets/primary_button.dart';
 import 'package:q45gofna6/core/constant/widgets/auth_app_bar.dart';
+import 'package:q45gofna6/feature/auth/Login/views/login_page.dart';
 import '../../../../../core/constant/widgets/otpbox.dart';
+import '../../../../../core/constant/widgets/success_dialog.dart';
 
 class RegistrationOtpPage extends StatelessWidget {
   const RegistrationOtpPage({super.key});
@@ -13,7 +16,6 @@ class RegistrationOtpPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryColor,
       appBar: const AuthAppBar(),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -40,9 +42,11 @@ class RegistrationOtpPage extends StatelessWidget {
 
               PrimaryButton(
                 text: "Continue",
-                onPressed: () {
-                  // TODO: Handle OTP Verification then go to Home Login
-                },
+                onPressed: () => SuccessDialog.show(
+                  subtitle: "Your account is successfully created",
+                  context: context,
+                  onPressed: () => Get.to(() => LoginPage()),
+                ),
               ),
               SizedBox(height: 20.h),
 

@@ -9,6 +9,7 @@ class ImagePath {
   ///=================Onboarding Images======================
   static const String onboardingImg01 = "assets/images/onboarding01.png";
   static const String onboardingImg02= "assets/images/onboarding02.png";
+  static const String successLogo = "assets/icons/success_logo.png";
 
   // static const String user = "assets/images/user.png";
   // static const String videoPlay = "assets/images/video_play.png";
@@ -50,7 +51,6 @@ class ImagePath {
   //
 
   //
-  // static const String successLogo = "assets/images/success_logo.png";
   //
   //
   // /// Home Page related images

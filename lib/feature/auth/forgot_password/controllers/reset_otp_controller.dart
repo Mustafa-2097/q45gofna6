@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
-import '../views/pages/reset_password.dart';
 
 class ResetOtpController extends GetxController {
   static ResetOtpController get instance => Get.find();
@@ -16,13 +14,9 @@ class ResetOtpController extends GetxController {
   /// Whether user can resend OTP
   var canResend = false.obs;
 
-  // email variable passed
-  late final String email;
-
   @override
   void onInit() {
     super.onInit();
-    email = Get.arguments["email"];
     startTimer();
   }
 

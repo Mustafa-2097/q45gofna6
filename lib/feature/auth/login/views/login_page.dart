@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -6,6 +7,7 @@ import 'package:q45gofna6/core/constant/widgets/primary_button.dart';
 import '../../../../core/constant/app_colors.dart';
 import '../../../../core/constant/app_text_styles.dart';
 import '../../../../core/constant/widgets/input_text_field.dart';
+import '../../forgot_password/views/forgot_password_page.dart';
 import '../../registration/views/registration_page.dart';
 import '../controllers/login_page_controller.dart';
 
@@ -121,9 +123,7 @@ class LoginPage extends StatelessWidget {
                     ],
                   ),
                   GestureDetector(
-                    onTap: () {
-                      // Navigate to Forgot Password
-                    },
+                    onTap: () => Get.to(() => ForgotPasswordPage()),
                     child: Text(
                       "Forgot Password?",
                       style: AppTextStyles.regular_14(context).copyWith(
@@ -153,6 +153,8 @@ class LoginPage extends StatelessWidget {
                         style: AppTextStyles.bold_16(context).copyWith(
                           color: AppColors.buttonColor,
                         ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () => Get.to(() => RegistrationPage()),
                       ),
                     ],
                   ),

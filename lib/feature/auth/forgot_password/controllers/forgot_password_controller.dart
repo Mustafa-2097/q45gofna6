@@ -8,6 +8,12 @@ class ForgotPasswordController extends GetxController {
   /// Text Controller
   final emailController = TextEditingController();
 
+  /// Validation
+  String? validateEmail() {
+    if (emailController.text.trim().isEmpty) return "Email is required";
+    if (!GetUtils.isEmail(emailController.text.trim())) return "Enter a valid email";
+    return null;
+  }
 
   @override
   void onClose() {
