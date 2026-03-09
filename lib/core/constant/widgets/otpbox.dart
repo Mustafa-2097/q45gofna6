@@ -20,8 +20,9 @@ class OtpBox extends StatelessWidget {
       enableActiveFill: true,
       pinTheme: PinTheme(
         shape: PinCodeFieldShape.circle,
-        fieldHeight: 56.h, // using width for perfect circle
-        fieldWidth: 56.w,
+        borderRadius: BorderRadius.circular(12.r),
+        fieldHeight: 50.h, // using width for perfect circle
+        fieldWidth: 50.w,
         activeFillColor: AppColors.whiteColor,
         inactiveFillColor: AppColors.whiteColor,
         selectedFillColor: AppColors.buttonColor,

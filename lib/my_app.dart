@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:q45gofna6/feature/onboarding/view/welcome_screen.dart';
 import 'core/constant/app_colors.dart';
+import 'feature/customer_dashboard/dashboard/dashboard.dart';
 import 'feature/splash/view/splash_screen.dart';
 
 class MyApp extends StatelessWidget {
@@ -42,7 +43,7 @@ class MyApp extends StatelessWidget {
                 side: BorderSide(width: 1.5, color: AppColors.boxTextColor),
               ),
             ),
-            home: SplashScreen(),
+            home: CustomerDashboard(),
           ),
         );
       },

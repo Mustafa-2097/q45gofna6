@@ -4,8 +4,8 @@
 // import 'package:google_fonts/google_fonts.dart';
 // import '../../../feature/auth/sign_in/controllers/sign_in_controller.dart';
 // import '../../../feature/auth/sign_in/views/sign_in_page.dart';
-// import '../../../feature/user_flow/profile/controllers/personal_info_controller.dart';
-// import '../../../feature/user_flow/profile/controllers/profile_controller.dart';
+// import '../../../feature/customer_dashboard/profile/controllers/personal_info_controller.dart';
+// import '../../../feature/customer_dashboard/profile/controllers/profile_controller.dart';
 // import '../../offline_storage/shared_pref.dart';
 // import '../app_colors.dart';
 // import '../image_path.dart';
