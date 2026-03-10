@@ -42,7 +42,7 @@ class ImagePath {
   // ///
   // static const String defaultImage = "https://via.placeholder.com/150?text=No+Image";
   //
-  // static const String logoutIcon = "assets/images/logout_icon.png";
+  static const String logoutIcon = "assets/icons/logout_icon.png";
   // static const String editIcon = "assets/icons/edit_icon.png";
   // static const String certificate = "assets/images/certificate.png";
   // static const String payment = "assets/images/payment.png";

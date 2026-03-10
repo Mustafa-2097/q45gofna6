@@ -106,7 +106,7 @@ class AddInventoryItemPage extends StatelessWidget {
               width: double.infinity,
               height: 52.h,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () => Get.back(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.buttonColor,
                   shape: RoundedRectangleBorder(

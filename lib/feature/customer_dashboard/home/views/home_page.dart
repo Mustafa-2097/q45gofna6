@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:q45gofna6/core/constant/app_text_styles.dart';
 import '../../../../core/constant/app_colors.dart';
 import '../controllers/home_controller.dart';
+import '../../event/views/new_event_page.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
@@ -90,49 +91,52 @@ class HomePage extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: AppColors.buttonColor,
-              borderRadius: BorderRadius.circular(16.r),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(12.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12.r),
+          child: InkWell(
+            onTap: () => Get.to(() => const NewEventPage()),
+            child: Container(
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: AppColors.buttonColor,
+                borderRadius: BorderRadius.circular(16.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  child: Icon(Icons.add, color: Colors.white, size: 24.w),
-                ),
-                SizedBox(height: 12.h),
-                Text(
-                  'New Event',
-                  style: GoogleFonts.inter(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Icon(Icons.add, color: Colors.white, size: 24.w),
                   ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  'Create new audit',
-                  style: GoogleFonts.inter(
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white.withOpacity(0.8),
+                  SizedBox(height: 12.h),
+                  Text(
+                    'New Event',
+                    style: GoogleFonts.inter(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 4.h),
+                  Text(
+                    'Create new audit',
+                    style: GoogleFonts.inter(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

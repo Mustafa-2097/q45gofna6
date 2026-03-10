@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:q45gofna6/feature/customer_dashboard/dashboard/widgets/bottom_nav.dart';
 import 'package:q45gofna6/feature/customer_dashboard/event/views/event_page.dart';
 import 'package:q45gofna6/feature/customer_dashboard/inventory/views/inventory_page.dart';
 import 'package:q45gofna6/feature/customer_dashboard/reports/views/reports_page.dart';
 import '../home/views/home_page.dart';
+import '../profile/views/profile_page.dart';
 
 class CustomerDashboard extends StatefulWidget {
   final int initialIndex;
@@ -22,7 +22,7 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
     InventoryPage(),
     EventPage(),
     ReportsPage(),
-    const SizedBox(), // Placeholder for Profile
+    const ProfilePage(),
   ];
 
   @override

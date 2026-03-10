@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constant/app_colors.dart';
 import '../controllers/inventory_controller.dart';
+import 'add_inventory_item_page.dart';
 
 class InventoryPage extends StatelessWidget {
   InventoryPage({super.key});
@@ -13,6 +14,19 @@ class InventoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
+      floatingActionButton: SizedBox(
+        width: 60.w,
+        height: 60.w,
+        child: FloatingActionButton(
+          onPressed: () => Get.to(() => const AddInventoryItemPage()),
+          backgroundColor: const Color(0xFF3876D6),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          elevation: 4,
+          child: Icon(Icons.add, color: Colors.white, size: 30.w),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
@@ -229,9 +243,6 @@ class InventoryPage extends StatelessWidget {
             title: 'Professional Camera',
             category: 'Photography',
             price: '\$2,500',
-            actionIcon: Icons.delete_outline,
-            actionColor: const Color(0xFFFDE8E8),
-            actionIconColor: const Color(0xFFE93A56),
           );
         } else {
           return _buildInventoryItem(
@@ -240,9 +251,6 @@ class InventoryPage extends StatelessWidget {
             title: 'Wireless Microphone',
             category: 'Audio',
             price: '\$450',
-            actionIcon: Icons.add,
-            actionColor: const Color(0xFF3876D6),
-            actionIconColor: Colors.white,
           );
         }
       },
@@ -254,9 +262,6 @@ class InventoryPage extends StatelessWidget {
     required String title,
     required String category,
     required String price,
-    required IconData actionIcon,
-    required Color actionColor,
-    required Color actionIconColor,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -339,12 +344,12 @@ class InventoryPage extends StatelessWidget {
                     Container(
                       padding: EdgeInsets.all(8.w),
                       decoration: BoxDecoration(
-                        color: actionColor,
+                        color: const Color(0xFFFDE8E8),
                         borderRadius: BorderRadius.circular(10.r),
                       ),
                       child: Icon(
-                        actionIcon,
-                        color: actionIconColor,
+                        Icons.delete_outline,
+                        color: const Color(0xFFE93A56),
                         size: 18.w,
                       ),
                     ),
