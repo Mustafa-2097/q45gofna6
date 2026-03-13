@@ -7,6 +7,7 @@ import '../../../../core/constant/app_colors.dart';
 import 'add_kit_page.dart';
 import 'capture_before_image_page.dart';
 import 'capture_after_image_page.dart';
+import 'ai_audit_page.dart';
 
 class EventDetailsPage extends StatelessWidget {
   const EventDetailsPage({super.key});
@@ -24,6 +25,7 @@ class EventDetailsPage extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: Column(
                   children: [
+                    SizedBox(height: 16.h),
                     _buildSummaryCard(),
                     SizedBox(height: 20.h),
                     _buildAuditProgress(),
@@ -195,156 +197,125 @@ class EventDetailsPage extends StatelessWidget {
 
   Widget _buildAuditProgress() {
     return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(20.r),
       ),
-      padding: EdgeInsets.all(16.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Audit Progress',
             style: GoogleFonts.inter(
-              fontSize: 16.sp,
+              fontSize: 18.sp,
               fontWeight: FontWeight.w700,
               color: AppColors.textColor,
             ),
           ),
           SizedBox(height: 16.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(10.w),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F6F6),
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    child: Icon(
-                      Icons.camera_alt_outlined,
-                      color: AppColors.textColor,
-                      size: 24.w,
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Capture Baseline',
-                        style: GoogleFonts.inter(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textColor,
-                        ),
-                      ),
-                      Text(
-                        'Photo before event',
-                        style: GoogleFonts.inter(
-                          fontSize: 12.sp,
-                          color: AppColors.boxTextColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              GestureDetector(
-                onTap: () {
-                  Get.to(() => const CaptureBeforeImagePage());
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 8.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.buttonColor,
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  child: Text(
-                    'Capture',
-                    style: GoogleFonts.inter(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          _buildCaptureBaselineCard(),
+          SizedBox(height: 20.h),
+          _buildAuditItemCard(
+            title: 'Tittle',
+            hasAfterCapture: true,
           ),
           SizedBox(height: 16.h),
-          _buildAuditItem(),
-          SizedBox(height: 12.h),
-          _buildAuditItem(),
-          SizedBox(height: 12.h),
-          _buildAuditItem(),
+          _buildAuditItemCard(
+            title: 'Tittle',
+            hasAfterCapture: false,
+          ),
+          SizedBox(height: 20.h),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Get.to(() => const AiAuditPage()),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.buttonColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 14.h),
+                elevation: 0,
+              ),
+              child: Text(
+                'View all',
+                style: GoogleFonts.inter(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildAuditItem() {
+  Widget _buildCaptureBaselineCard() {
     return Container(
-      padding: EdgeInsets.all(8.w),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: const Color(0xFFF9FAFA),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.r),
-            child: Image.network(
-              'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
-              width: 50.w,
-              height: 40.h,
-              fit: BoxFit.cover,
-            ),
-          ),
-          SizedBox(width: 12.w),
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(10.w),
             decoration: BoxDecoration(
-              color: const Color(0xFFEFEFEF),
-              shape: BoxShape.circle,
+              color: const Color(0xFFE2E8F0),
+              borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
-              Icons.auto_awesome,
-              color: AppColors.boxTextColor,
-              size: 16.w,
+              Icons.camera_alt_outlined,
+              color: const Color(0xFF64748B),
+              size: 24.w,
             ),
           ),
           SizedBox(width: 12.w),
           Expanded(
-            child: GestureDetector(
-              onTap: () {
-                Get.to(() => const CaptureAfterImagePage());
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Run AI Audit',
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textColor,
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Capture Baseline',
+                  style: GoogleFonts.inter(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textColor,
                   ),
-                  Text(
-                    'After event analysis',
-                    style: GoogleFonts.inter(
-                      fontSize: 12.sp,
-                      color: AppColors.boxTextColor,
-                    ),
+                ),
+                Text(
+                  'Photo before event',
+                  style: GoogleFonts.inter(
+                    fontSize: 12.sp,
+                    color: AppColors.boxTextColor,
                   ),
-                ],
+                ),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.to(() => const CaptureBeforeImagePage()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.buttonColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              elevation: 0,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              'Capture',
+              style: GoogleFonts.inter(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
               ),
             ),
           ),
@@ -352,6 +323,132 @@ class EventDetailsPage extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildAuditItemCard({
+    required String title,
+    required bool hasAfterCapture,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.inter(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textColor,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8.r),
+                      child: Image.network(
+                        'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
+                        height: 120.h,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      'Before Capture',
+                      style: GoogleFonts.inter(
+                        fontSize: 11.sp,
+                        color: AppColors.boxTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  children: [
+                    hasAfterCapture
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8.r),
+                            child: Image.network(
+                              'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
+                              height: 120.h,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : GestureDetector(
+                            onTap: () => Get.to(() => const CaptureAfterImagePage()),
+                            child: Container(
+                              height: 120.h,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE0E7FF),
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  Icons.add,
+                                  color: const Color(0xFF6366F1),
+                                  size: 32.w,
+                                ),
+                              ),
+                            ),
+                          ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      'After Capture',
+                      style: GoogleFonts.inter(
+                        fontSize: 11.sp,
+                        color: AppColors.boxTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => Get.to(() => const AiAuditPage()),
+              icon: Icon(Icons.auto_awesome, size: 18.w, color: Colors.white),
+              label: Text(
+                'Run AI Audit',
+                style: GoogleFonts.inter(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: hasAfterCapture ? AppColors.buttonColor : const Color(0xFF82B0F8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+                elevation: 0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildEventKit() {
     return Container(

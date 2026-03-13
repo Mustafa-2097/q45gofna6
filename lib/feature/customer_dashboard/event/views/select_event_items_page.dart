@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constant/app_colors.dart';
 import '../../../../core/constant/widgets/primary_button.dart';
+import '../../../../core/constant/widgets/item_card_widget.dart';
 import 'event_details_page.dart';
 
 class SelectEventItemsPage extends StatefulWidget {
@@ -315,80 +316,16 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
     required String price,
     required String imageUrl,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Container(
-              margin: EdgeInsets.all(8.w),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF3F1CF),
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12.r),
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textColor,
-                  ),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  category,
-                  style: GoogleFonts.inter(
-                    fontSize: 10.sp,
-                    color: AppColors.boxTextColor,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      price,
-                      style: GoogleFonts.inter(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF2E61E6),
-                      ),
-                    ),
-                    Icon(
-                      Icons.delete_outline,
-                      color: AppColors.redColor,
-                      size: 16.w,
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12.h),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return ItemCardWidget(
+      name: name,
+      category: category,
+      price: price,
+      imageUrl: imageUrl,
+      quantity: 1, // Example static quantity for UI representation
+      onDecrease: () {},
+      onIncrease: () {},
+      onDelete: () {},
+      showQuantityControls: true,
     );
   }
 }
