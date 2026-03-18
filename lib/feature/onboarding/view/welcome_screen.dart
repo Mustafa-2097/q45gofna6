@@ -5,7 +5,7 @@ import 'package:q45gofna6/core/constant/widgets/primary_button.dart';
 import '../../../core/constant/app_colors.dart';
 import '../../../core/constant/app_text_styles.dart';
 import '../../../core/constant/image_path.dart';
-import '../../auth/Login/views/login_page.dart';
+import '../../auth/login/views/login_page.dart';
 import '../../auth/registration/views/registration_page.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -43,7 +43,7 @@ class WelcomeScreen extends StatelessWidget {
             SizedBox(height: 50.h),
 
             /// Login+SignUp Buttons
-            PrimaryButton(text: "login", onPressed: () => Get.to(() => LoginPage())),
+            PrimaryButton(text: "Login", onPressed: () => Get.to(() => LoginPage())),
             SizedBox(height: 11.h),
             PrimaryButton(text: "Sign Up", onPressed: () => Get.to(() => RegistrationPage())),
           ],

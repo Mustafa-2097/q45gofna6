@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
+import 'package:q45gofna6/core/network/api_service.dart';
+import '../views/pages/registration_otp_page.dart';
 
 class RegistrationPageController extends GetxController {
   static RegistrationPageController get instance => Get.find();
@@ -48,27 +51,49 @@ class RegistrationPageController extends GetxController {
   }
 
   /// Registration
-  // Future<void> register() async {
-  //   final nameError = validateName();
-  //   final emailError = validateEmail();
-  //   final passwordError = validatePassword();
-  //   final confirmPasswordError = validateConfirmPassword();
-  //
-  //   final errorMessage =
-  //      nameError ?? emailError ?? passwordError ?? confirmPasswordError;
-  //
-  //   if (errorMessage != null) {
-  //     EasyLoading.showError(errorMessage);
-  //     return;
-  //   }
-  //
-  //   /// REAL SIGNUP
-  //   await AuthService.signUp(
-  //     name: nameController.text,
-  //     email: emailController.text,
-  //     password: passwordController.text,
-  //   );
-  // }
+  Future<void> register() async {
+    final nameError = validateName();
+    final emailError = validateEmail();
+    final passwordError = validatePassword();
+    final confirmPasswordError = validateConfirmPassword();
+
+    if (!agreedToTerms.value) {
+      EasyLoading.showError("You must agree to the Terms and Conditions");
+      return;
+    }
+
+    final errorMessage =
+       nameError ?? emailError ?? passwordError ?? confirmPasswordError;
+
+    if (errorMessage != null) {
+      EasyLoading.showError(errorMessage);
+      return;
+    }
+
+    try {
+      EasyLoading.show(status: 'Creating account...');
+      final response = await ApiService.register(
+        name: nameController.text.trim(),
+        companyName: companyNameController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+        confirmPassword: confirmPasswordController.text.trim(),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        EasyLoading.showSuccess('Registration success! Check your email for OTP.');
+        Get.to(() => RegistrationOtpPage(), arguments: {'email': emailController.text.trim()});
+      } else {
+        EasyLoading.showError(data['message'] ?? 'Registration failed');
+      }
+    } catch (e) {
+      EasyLoading.showError('An error occurred: $e');
+    } finally {
+      EasyLoading.dismiss();
+    }
+  }
 
   @override
   void onClose() {

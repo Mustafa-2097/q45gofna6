@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:q45gofna6/feature/auth/forgot_password/views/pages/reset_otp_page.dart';
+
 import '../../../../core/constant/app_text_styles.dart';
 import '../../../../core/constant/widgets/auth_app_bar.dart';
 import '../../../../core/constant/widgets/input_text_field.dart';
@@ -57,7 +57,7 @@ class ForgotPasswordPage extends StatelessWidget {
               SizedBox(height: 30.h),
 
               // Next Button
-              PrimaryButton(text: "Next", onPressed: () => Get.to(() => ResetOtpPage())),
+              PrimaryButton(text: "Next", onPressed: () => controller.sendOtp()),
               SizedBox(height: 30.h),
             ],
           ),

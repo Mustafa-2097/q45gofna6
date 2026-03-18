@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:q45gofna6/core/constant/app_text_styles.dart';
-import '../../../feature/auth/Login/views/login_page.dart';
+import '../../../feature/auth/login/views/login_page.dart';
 import '../../offline_storage/shared_pref.dart';
 import '../app_colors.dart';
 import '../image_path.dart';
@@ -61,7 +61,10 @@ class LogoutButton extends StatelessWidget {
                               ),
                               backgroundColor: AppColors.whiteColor,
                             ),
-                            onPressed: () => Get.offAll(() => LoginPage()),
+                            onPressed: () async {
+                              await SharedPreferencesHelper.clearToken();
+                              Get.offAll(() => LoginPage());
+                            },
                             child: Text(
                               "Log Out",
                               style: GoogleFonts.plusJakartaSans(color: AppColors.redColor, fontSize: 16.sp, fontWeight: FontWeight.w600),

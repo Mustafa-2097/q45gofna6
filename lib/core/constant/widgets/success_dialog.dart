@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:q45gofna6/core/constant/widgets/primary_button.dart';
-import 'package:q45gofna6/feature/auth/Login/views/login_page.dart';
 import '../../../../../core/constant/app_colors.dart';
 import '../../../../../core/constant/app_text_styles.dart';
 import '../../../../../core/constant/image_path.dart';

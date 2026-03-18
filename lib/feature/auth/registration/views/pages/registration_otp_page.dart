@@ -6,12 +6,15 @@ import 'package:q45gofna6/core/constant/app_colors.dart';
 import 'package:q45gofna6/core/constant/app_text_styles.dart';
 import 'package:q45gofna6/core/constant/widgets/primary_button.dart';
 import 'package:q45gofna6/core/constant/widgets/auth_app_bar.dart';
-import 'package:q45gofna6/feature/auth/Login/views/login_page.dart';
+
 import '../../../../../core/constant/widgets/otpbox.dart';
-import '../../../../../core/constant/widgets/success_dialog.dart';
+
+
+import '../../controllers/registration_otp_controller.dart';
 
 class RegistrationOtpPage extends StatelessWidget {
-  const RegistrationOtpPage({super.key});
+  RegistrationOtpPage({super.key});
+  final controller = Get.put(RegistrationOtpController());
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +30,7 @@ class RegistrationOtpPage extends StatelessWidget {
               Text("Enter OTP", style: AppTextStyles.title24(context)),
               SizedBox(height: 10.h),
               Text(
-                "We have just sent you 4 digit code via your\nemail example@gmail.com",
+                "We have just sent you 4 digit code via your\nemail ${controller.email}",
                 textAlign: TextAlign.center,
                 style: AppTextStyles.regular_16(context),
               ),
@@ -36,17 +39,13 @@ class RegistrationOtpPage extends StatelessWidget {
               // Custom OTP Box tailored to the UI (4 circles)
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 24.w),
-                child: OtpBox(),
+                child: OtpBox(onChanged: (value) => controller.otp.value = value),
               ),
               SizedBox(height: 30.h),
 
               PrimaryButton(
                 text: "Continue",
-                onPressed: () => SuccessDialog.show(
-                  subtitle: "Your account is successfully created",
-                  context: context,
-                  onPressed: () => Get.to(() => LoginPage()),
-                ),
+                onPressed: () => controller.verifyOtp(context),
               ),
               SizedBox(height: 20.h),
 
@@ -64,7 +63,7 @@ class RegistrationOtpPage extends StatelessWidget {
                       ).copyWith(color: AppColors.buttonColor),
                       recognizer: TapGestureRecognizer()
                         ..onTap = () {
-                          // Handle Resend logic
+                          controller.resendOtp();
                         },
                     ),
                   ],

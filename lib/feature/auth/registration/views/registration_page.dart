@@ -8,7 +8,6 @@ import '../../../../core/constant/app_colors.dart';
 import '../../../../core/constant/app_text_styles.dart';
 import '../../../../core/constant/widgets/input_text_field.dart';
 import '../controllers/registration_page_controller.dart';
-import 'pages/registration_otp_page.dart';
 
 class RegistrationPage extends StatelessWidget {
   RegistrationPage({super.key});
@@ -172,7 +171,7 @@ class RegistrationPage extends StatelessWidget {
               PrimaryButton(
                 text: "Sign Up",
                 onPressed: () {
-                  Get.to(() => const RegistrationOtpPage());
+                  controller.register();
                 },
               ),
               SizedBox(height: 30.h),

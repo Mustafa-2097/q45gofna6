@@ -1,8 +1,25 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
+import 'package:q45gofna6/core/network/api_service.dart';
+import 'package:q45gofna6/core/offline_storage/shared_pref.dart';
+import '../../../customer_dashboard/dashboard/dashboard.dart';
 
 class LoginPageController extends GetxController {
+  @override
+  void onInit() {
+    super.onInit();
+    _loadRememberedData();
+  }
+
+  Future<void> _loadRememberedData() async {
+    rememberMe.value = await SharedPreferencesHelper.isRememberMe();
+    if (rememberMe.value) {
+      emailController.text = await SharedPreferencesHelper.getRememberedEmail() ?? "";
+    }
+  }
+
   static LoginPageController get instance => Get.find();
 
   /// Text Controllers
@@ -26,26 +43,53 @@ class LoginPageController extends GetxController {
   }
 
   /// MAIN LOGIN FUNCTION
-  // Future<void> login() async {
-  //   final emailError = validateEmail();
-  //   final passError = validatePassword();
-  //
-  //   if (emailError != null || passError != null) {
-  //     EasyLoading.showError(emailError ?? passError!);
-  //     return;
-  //   }
-  //
-  //   /// Call AuthService (REAL LOGIN)
-  //   await AuthService.login(
-  //     email: emailController.text,
-  //     password: passwordController.text,
-  //   );
-  // }
+  Future<void> login() async {
+    final emailError = validateEmail();
+    final passError = validatePassword();
+
+    if (emailError != null || passError != null) {
+      EasyLoading.showError(emailError ?? passError!);
+      return;
+    }
+
+    try {
+      EasyLoading.show(status: 'Logging in...');
+      final response = await ApiService.login(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final token = data['data']?['accessToken'] ?? data['token'];
+        if (token != null) {
+          await SharedPreferencesHelper.saveToken(token);
+          
+          if (rememberMe.value) {
+            await SharedPreferencesHelper.saveRememberMe(true);
+            await SharedPreferencesHelper.saveRememberedEmail(emailController.text.trim());
+          } else {
+            await SharedPreferencesHelper.clearRememberMe();
+          }
+
+          EasyLoading.showSuccess('Login Successful');
+          Get.offAll(() => CustomerDashboard());
+        } else {
+          EasyLoading.showError('Token not found in response');
+        }
+      } else {
+        EasyLoading.showError(data['message'] ?? 'Login failed');
+      }
+    } catch (e) {
+      EasyLoading.showError('An error occurred: $e');
+    } finally {
+      EasyLoading.dismiss();
+    }
+  }
 
   @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
     super.onClose();
   }
 }

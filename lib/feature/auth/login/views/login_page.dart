@@ -7,7 +7,7 @@ import 'package:q45gofna6/core/constant/widgets/primary_button.dart';
 import '../../../../core/constant/app_colors.dart';
 import '../../../../core/constant/app_text_styles.dart';
 import '../../../../core/constant/widgets/input_text_field.dart';
-import '../../../customer_dashboard/dashboard/dashboard.dart';
+
 import '../../forgot_password/views/forgot_password_page.dart';
 import '../../registration/views/registration_page.dart';
 import '../controllers/login_page_controller.dart';
@@ -137,7 +137,7 @@ class LoginPage extends StatelessWidget {
               SizedBox(height: 32.h),
 
               // Login Button
-              PrimaryButton(text: "Login", onPressed: () => Get.to(() => CustomerDashboard())),
+              PrimaryButton(text: "Login", onPressed: () => controller.login()),
               SizedBox(height: 30.h),
 
               // Don't have an account

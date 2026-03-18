@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:q45gofna6/core/constant/widgets/auth_app_bar.dart';
-import 'package:q45gofna6/feature/auth/Login/views/login_page.dart';
-import 'package:q45gofna6/feature/auth/forgot_password/views/pages/reset_password_successful.dart';
-import 'package:q45gofna6/feature/auth/registration/views/pages/registration_otp_page.dart';
+
 import '../../../../../core/constant/app_colors.dart';
 import '../../../../../core/constant/app_text_styles.dart';
 import '../../../../../core/constant/widgets/input_text_field.dart';
 import '../../../../../core/constant/widgets/label_text.dart';
 import '../../../../../core/constant/widgets/primary_button.dart';
-import '../../../../../core/constant/widgets/success_dialog.dart';
+
 import '../../controllers/reset_password_controller.dart';
 
 class ResetPasswordPage extends StatelessWidget {
@@ -101,11 +99,7 @@ class ResetPasswordPage extends StatelessWidget {
               // Sign Up Button
               PrimaryButton(
                 text: "Next",
-                onPressed: () => SuccessDialog.show(
-                  subtitle: "Your password is successfully reset",
-                  context: context,
-                  onPressed: () => Get.to(() => LoginPage()),
-                ),
+                onPressed: () => controller.resetPassword(context),
               ),
               SizedBox(height: 30.h),
             ],

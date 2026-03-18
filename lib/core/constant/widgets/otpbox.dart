@@ -6,12 +6,14 @@ import '../app_text_styles.dart';
 
 class OtpBox extends StatelessWidget {
   final Function(String)? onChanged;
-  const OtpBox({super.key, this.onChanged});
+  final TextEditingController? controller;
+  const OtpBox({super.key, this.onChanged, this.controller});
 
   @override
   Widget build(BuildContext context) {
     return PinCodeTextField(
       appContext: context,
+      controller: controller,
       length: 4,
       keyboardType: TextInputType.number,
       cursorColor: AppColors.textColor,
@@ -29,10 +31,9 @@ class OtpBox extends StatelessWidget {
         activeColor: Colors.transparent,
         inactiveColor: Colors.transparent,
         selectedColor: Colors.transparent,
+        borderWidth: 1,
       ),
-      onChanged: (value) {
-        // Handle OTP update
-      },
+      onChanged: onChanged ?? (value) {},
     );
     // return PinCodeTextField(
     //   appContext: context,
