@@ -9,59 +9,70 @@ import 'package:q45gofna6/core/constant/app_text_styles.dart';
 import 'package:q45gofna6/feature/customer_dashboard/profile/views/change_password_page.dart';
 import 'package:q45gofna6/feature/customer_dashboard/profile/views/privacy_policy_page.dart';
 import 'package:q45gofna6/feature/customer_dashboard/profile/views/support_center_page.dart';
+import 'package:q45gofna6/feature/customer_dashboard/profile/controllers/profile_controller.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(ProfileController());
+
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Profile',
-                style: AppTextStyles.title32(
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final userModel = controller.userProfile.value;
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Profile',
+                  style: AppTextStyles.title32(
+                    context,
+                  ).copyWith(color: AppColors.textColor),
+                ),
+                SizedBox(height: 24.h),
+                _buildProfileInformationCard(context, userModel?.profile.name ?? 'N/A', userModel?.email ?? 'N/A', userModel?.profile.companyName ?? 'N/A'),
+                SizedBox(height: 16.h),
+                _buildSubscriptionCard(context),
+                SizedBox(height: 24.h),
+                _buildActionRow(
+                  Icons.shield_outlined,
+                  'Change Password',
                   context,
-                ).copyWith(color: AppColors.textColor),
-              ),
-              SizedBox(height: 24.h),
-              _buildProfileInformationCard(context),
-              SizedBox(height: 16.h),
-              _buildSubscriptionCard(context),
-              SizedBox(height: 24.h),
-              _buildActionRow(
-                Icons.shield_outlined,
-                'Change Password',
-                context,
-                onTap: () => Get.to(() => const ChangePasswordPage()),
-              ),
-              _buildActionRow(
-                Icons.help_outline,
-                'Support Center',
-                context,
-                onTap: () => Get.to(() => const SupportCenterPage()),
-              ),
-              _buildActionRow(
-                Icons.lock_outline,
-                'Privacy & Policy',
-                context,
-                onTap: () => Get.to(() => const PrivacyPolicyPage()),
-              ),
-              LogoutButton(),
-              SizedBox(height: 32.h),
-            ],
-          ),
-        ),
+                  onTap: () => Get.to(() => ChangePasswordPage()),
+                ),
+                _buildActionRow(
+                  Icons.help_outline,
+                  'Support Center',
+                  context,
+                  onTap: () => Get.to(() => const SupportCenterPage()),
+                ),
+                _buildActionRow(
+                  Icons.lock_outline,
+                  'Privacy & Policy',
+                  context,
+                  onTap: () => Get.to(() => const PrivacyPolicyPage()),
+                ),
+                LogoutButton(),
+                SizedBox(height: 32.h),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }
 
-  Widget _buildProfileInformationCard(BuildContext context) {
+  Widget _buildProfileInformationCard(BuildContext context, String name, String email, String company) {
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -112,11 +123,11 @@ class ProfilePage extends StatelessWidget {
             ],
           ),
           SizedBox(height: 24.h),
-          _buildTextField('Full Name', 'Akib', context),
+          _buildTextField('Full Name', name, context),
           SizedBox(height: 16.h),
-          _buildTextField('Email', 'akib@company.com', context),
+          _buildTextField('Email', email, context),
           SizedBox(height: 16.h),
-          _buildTextField('Company', 'AuditFlow Inc', context),
+          _buildTextField('Company', company, context),
         ],
       ),
     );

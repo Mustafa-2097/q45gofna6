@@ -17,20 +17,27 @@ class ApiEndpoints {
   /// Reset password (NEW)
   static const String resetPassword = '$baseUrl/auth/reset-password';
 
+  // Change Password
+  static const String changePassword = '$baseUrl/auth/change-password';
+
 
   /// User / Profile
-  static const String profile = '$baseUrl/me/profile';
+  static const String profile = '$baseUrl/profile';
   static const String updateProfile = '$baseUrl/me/profile';
-  static const String updateAvatar = '$baseUrl/me/avatar';
-  static const String certificate = '$baseUrl/me/certificate';
+  //static const String updateAvatar = '$baseUrl/me/avatar';
+  static const String statistics = '$baseUrl/profile/statistics';
   //
   static const String contact = '$baseUrl/me/contact';
   static const String educateEmployee = '$baseUrl/me/educate-employee';
 
 
+  /// Categories
+  static const String categories = '$baseUrl/categories';
+
   /// Courses
   static const String courses = '$baseUrl/courses';
   static const String nextVideo = '$baseUrl/courses/:id/next-video';
+
 
   // Lesson's Review
   static const String review = '$baseUrl/lessons/:id/review';

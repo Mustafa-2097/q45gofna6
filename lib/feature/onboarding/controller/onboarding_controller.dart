@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:q45gofna6/feature/onboarding/view/welcome_screen.dart';
 import '../../../core/constant/image_path.dart';
+import '../../../core/offline_storage/shared_pref.dart';
 
 class OnboardingController extends GetxController with GetSingleTickerProviderStateMixin {
   final PageController pageController = PageController();
@@ -69,9 +70,15 @@ class OnboardingController extends GetxController with GetSingleTickerProviderSt
         curve: Curves.easeInOut,
       );
     } else {
-      Get.offAll(() => const WelcomeScreen());
-      debugPrint("End of onboarding");
+      finishOnboarding();
     }
+  }
+
+  /// Final navigation after onboarding
+  Future<void> finishOnboarding() async {
+    await SharedPreferencesHelper.setOnboardingCompleted();
+    Get.offAll(() => const WelcomeScreen());
+    debugPrint("End of onboarding");
   }
 
   @override

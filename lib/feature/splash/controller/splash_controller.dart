@@ -20,20 +20,34 @@ class SplashController extends GetxController {
     try {
       final onboardingDone = await SharedPreferencesHelper.isOnboardingCompleted();
       final token = await SharedPreferencesHelper.getToken();
-      
       debugPrint('Onboarding Completed: $onboardingDone');
       debugPrint('Token: $token');
 
-      if (!onboardingDone) {
-        Get.offAll(() => OnboardingScreen());
-      } else if (token == null || token.isEmpty) {
-        Get.offAll(() => LoginPage());
-      } else {
-        Get.offAll(() => CustomerDashboard());
-      }
+      /// Run navigation after frame renders
+      Future.microtask(() {
+        if (!onboardingDone) {
+          /// First launch → onboarding
+          Get.offAll(() => OnboardingScreen());
+        }
+        else if (token == null || token.isEmpty) {
+          /// Not logged in → login
+          Get.offAll(() => LoginPage());
+        }
+        else {
+          /// Logged in → dashboard
+          Get.offAll(() => CustomerDashboard());
+        }
+
+      });
+
     } catch (e) {
       debugPrint('Error in splash logic: $e');
-      Get.offAll(() => LoginPage());
+
+      /// Fallback navigation
+      Future.microtask(() {
+        Get.offAll(() => LoginPage());
+      });
+
     }
   }
 }

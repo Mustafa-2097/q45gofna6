@@ -82,10 +82,12 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
               width: double.infinity,
               height: 52.h,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_categoryController.text.trim().isNotEmpty) {
-                    controller.addCategory(_categoryController.text.trim());
-                    Get.back();
+                    bool success = await controller.addCategory(_categoryController.text.trim());
+                    if (success) {
+                      Get.back();
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(

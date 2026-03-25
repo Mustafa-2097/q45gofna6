@@ -132,4 +132,42 @@ class ApiService {
     };
     return await post(ApiEndpoints.resetPassword, body);
   }
+
+  // ================= PROFILE METHODS =================
+  
+  /// Change Password
+  static Future<http.Response> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final body = {
+      'oldPassword': oldPassword,
+      'newPassword': newPassword,
+    };
+    return await post(ApiEndpoints.changePassword, body);
+  }
+  
+  /// Get Profile
+  static Future<http.Response> getProfile() async {
+    return await get(ApiEndpoints.profile);
+  }
+
+  /// Get Statistics
+  static Future<http.Response> getStatistics() async {
+    return await get(ApiEndpoints.statistics);
+  }
+  // ================= CATEGORIES METHODS =================
+  
+  /// Get Categories
+  static Future<http.Response> getCategories() async {
+    return await get(ApiEndpoints.categories);
+  }
+
+  /// Create Category
+  static Future<http.Response> createCategory({required String name}) async {
+    final body = {
+      'name': name,
+    };
+    return await post(ApiEndpoints.categories, body);
+  }
 }

@@ -20,33 +20,33 @@ class HomePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(context),
+              Obx(() => _buildHeader(context, controller.userName.value)),
               SizedBox(height: 24.h),
               _buildActionCards(),
               SizedBox(height: 16.h),
-              _buildMetricCard(
+              Obx(() => _buildMetricCard(
                 title: 'Active Events',
-                value: '2',
+                value: controller.isLoading.value ? '...' : '${controller.statistics.value?.activeEvents ?? 0}',
                 icon: Icons.calendar_today_outlined,
                 iconBgColor: AppColors.buttonColor,
                 iconColor: Colors.white,
-              ),
+              )),
               SizedBox(height: 12.h),
-              _buildMetricCard(
+              Obx(() => _buildMetricCard(
                 title: 'Number of Props & Equipment Amount',
-                value: '\$6,080',
+                value: controller.isLoading.value ? '...' : '\$${controller.statistics.value?.totalAmount ?? 0}',
                 icon: Icons.attach_money,
                 iconBgColor: const Color(0xFF757575),
                 iconColor: Colors.white,
-              ),
+              )),
               SizedBox(height: 12.h),
-              _buildMetricCard(
+              Obx(() => _buildMetricCard(
                 title: 'Total Loss',
-                value: '\$450',
+                value: controller.isLoading.value ? '...' : '\$${controller.statistics.value?.totalLoss ?? 0}',
                 icon: Icons.trending_down,
                 iconBgColor: const Color(0xFFE93A56),
                 iconColor: Colors.white,
-              ),
+              )),
               SizedBox(height: 16.h),
               _buildRecentEvents(),
             ],
@@ -56,7 +56,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, String userName) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -64,7 +64,7 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Good Afternoon, User 👋',
+              'Hello, $userName 👋',
               style: AppTextStyles.title24(context),
             ),
             SizedBox(height: 2.h),
