@@ -15,41 +15,46 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Obx(() => _buildHeader(context, controller.userName.value)),
-              SizedBox(height: 24.h),
-              _buildActionCards(),
-              SizedBox(height: 16.h),
-              Obx(() => _buildMetricCard(
-                title: 'Active Events',
-                value: controller.isLoading.value ? '...' : '${controller.statistics.value?.activeEvents ?? 0}',
-                icon: Icons.calendar_today_outlined,
-                iconBgColor: AppColors.buttonColor,
-                iconColor: Colors.white,
-              )),
-              SizedBox(height: 12.h),
-              Obx(() => _buildMetricCard(
-                title: 'Number of Props & Equipment Amount',
-                value: controller.isLoading.value ? '...' : '\$${controller.statistics.value?.totalAmount ?? 0}',
-                icon: Icons.attach_money,
-                iconBgColor: const Color(0xFF757575),
-                iconColor: Colors.white,
-              )),
-              SizedBox(height: 12.h),
-              Obx(() => _buildMetricCard(
-                title: 'Total Loss',
-                value: controller.isLoading.value ? '...' : '\$${controller.statistics.value?.totalLoss ?? 0}',
-                icon: Icons.trending_down,
-                iconBgColor: const Color(0xFFE93A56),
-                iconColor: Colors.white,
-              )),
-              SizedBox(height: 16.h),
-              _buildRecentEvents(),
-            ],
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await controller.fetchHomeData();
+          },
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Obx(() => _buildHeader(context, controller.userName.value)),
+                SizedBox(height: 24.h),
+                _buildActionCards(),
+                SizedBox(height: 16.h),
+                Obx(() => _buildMetricCard(
+                  title: 'Active Events',
+                  value: controller.isLoading.value ? '...' : '${controller.statistics.value?.activeEvents ?? 0}',
+                  icon: Icons.calendar_today_outlined,
+                  iconBgColor: AppColors.buttonColor,
+                  iconColor: Colors.white,
+                )),
+                SizedBox(height: 12.h),
+                Obx(() => _buildMetricCard(
+                  title: 'Number of Props & Equipment Amount',
+                  value: controller.isLoading.value ? '...' : '\$${controller.statistics.value?.totalAmount ?? 0}',
+                  icon: Icons.attach_money,
+                  iconBgColor: const Color(0xFF757575),
+                  iconColor: Colors.white,
+                )),
+                SizedBox(height: 12.h),
+                Obx(() => _buildMetricCard(
+                  title: 'Total Loss',
+                  value: controller.isLoading.value ? '...' : '\$${controller.statistics.value?.totalLoss ?? 0}',
+                  icon: Icons.trending_down,
+                  iconBgColor: const Color(0xFFE93A56),
+                  iconColor: Colors.white,
+                )),
+                SizedBox(height: 16.h),
+                _buildRecentEvents(),
+              ],
+            ),
           ),
         ),
       ),

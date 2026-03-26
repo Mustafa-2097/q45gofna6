@@ -10,6 +10,7 @@ import 'package:q45gofna6/feature/customer_dashboard/profile/views/change_passwo
 import 'package:q45gofna6/feature/customer_dashboard/profile/views/privacy_policy_page.dart';
 import 'package:q45gofna6/feature/customer_dashboard/profile/views/support_center_page.dart';
 import 'package:q45gofna6/feature/customer_dashboard/profile/controllers/profile_controller.dart';
+import 'package:q45gofna6/feature/customer_dashboard/profile/views/profile_update_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -40,7 +41,7 @@ class ProfilePage extends StatelessWidget {
                   ).copyWith(color: AppColors.textColor),
                 ),
                 SizedBox(height: 24.h),
-                _buildProfileInformationCard(context, userModel?.profile.name ?? 'N/A', userModel?.email ?? 'N/A', userModel?.profile.companyName ?? 'N/A'),
+                _buildProfileInformationCard(context, controller, userModel?.profile.name ?? 'N/A', userModel?.email ?? 'N/A', userModel?.profile.companyName ?? 'N/A'),
                 SizedBox(height: 16.h),
                 _buildSubscriptionCard(context),
                 SizedBox(height: 24.h),
@@ -72,7 +73,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileInformationCard(BuildContext context, String name, String email, String company) {
+  Widget _buildProfileInformationCard(BuildContext context, ProfileController controller, String name, String email, String company) {
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -83,87 +84,68 @@ class ProfilePage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                height: 40.w,
-                width: 40.w,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF3B7ED5),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.person_outline,
-                  color: Colors.white,
-                  size: 24.w,
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Text(
-                    'Profile Information',
-                    style: GoogleFonts.inter(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textColor,
+                  Container(
+                    height: 40.w,
+                    width: 40.w,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B7ED5),
+                      shape: BoxShape.circle,
+                      image: controller.userProfile.value?.profile.cleanedAvatarUrl != null && controller.userProfile.value!.profile.cleanedAvatarUrl.isNotEmpty
+                          ? DecorationImage(
+                              image: NetworkImage(controller.userProfile.value!.profile.cleanedAvatarUrl),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
+                    child: (controller.userProfile.value?.profile.cleanedAvatarUrl == null || controller.userProfile.value!.profile.cleanedAvatarUrl.isEmpty)
+                        ? Icon(
+                            Icons.person_outline,
+                            color: Colors.white,
+                            size: 24.w,
+                          )
+                        : null,
                   ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    'Update your details',
-                    style: GoogleFonts.inter(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.boxTextColor,
-                    ),
+                  SizedBox(width: 12.w),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: GoogleFonts.inter(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textColor,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        email,
+                        style: GoogleFonts.inter(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.boxTextColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
+              IconButton(
+                onPressed: () => Get.to(() => const ProfileUpdatePage()),
+                icon: Icon(
+                  Icons.edit_outlined,
+                  color: AppColors.textColor,
+                  size: 24.w,
+                ),
+              ),
             ],
           ),
-          SizedBox(height: 24.h),
-          _buildTextField('Full Name', name, context),
-          SizedBox(height: 16.h),
-          _buildTextField('Email', email, context),
-          SizedBox(height: 16.h),
-          _buildTextField('Company', company, context),
         ],
       ),
-    );
-  }
-
-  Widget _buildTextField(String label, String value, BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w600,
-            color: AppColors.subTextColor,
-          ),
-        ),
-        SizedBox(height: 8.h),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: const Color(0xFFE0E0E0)),
-          ),
-          child: Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w400,
-              color: AppColors.textColor,
-            ),
-          ),
-        ),
-      ],
     );
   }
 

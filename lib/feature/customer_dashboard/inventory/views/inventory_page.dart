@@ -5,12 +5,14 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constant/app_colors.dart';
 import '../../../../core/constant/widgets/item_card_widget.dart';
 import '../controllers/inventory_controller.dart';
+import '../models/inventory_item_model.dart';
 import 'add_inventory_item_page.dart';
 import 'widgets/add_category_dialog.dart';
 
 class InventoryPage extends StatelessWidget {
   InventoryPage({super.key});
-  final controller = Get.put(InventoryController());
+  final InventoryController controller = Get.find<InventoryController>();
+  final TextEditingController searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -30,9 +32,16 @@ class InventoryPage extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-          child: Column(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await controller.fetchCategories();
+            await controller.fetchInventoryItems();
+            await controller.fetchInventoryStatistics();
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -93,55 +102,60 @@ class InventoryPage extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildValueCard() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: const Color(
-          0xFF3876D6,
-        ), // Matching the medium blue from the design
-        borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Total Inventory Value',
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white.withOpacity(0.9),
+    return Obx(() {
+      final double totalValue = controller.totalCost.value;
+      final int itemsCount = controller.totalItems.value;
+
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(20.w),
+        decoration: BoxDecoration(
+          color: const Color(
+            0xFF3876D6,
+          ), // Matching the medium blue from the design
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Total Inventory Value',
+                      style: GoogleFonts.inter(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    '\$6,080',
-                    style: GoogleFonts.inter(
-                      fontSize: 32.sp,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                    SizedBox(height: 8.h),
+                    Text(
+                      '\$${totalValue.toStringAsFixed(2)}',
+                      style: GoogleFonts.inter(
+                        fontSize: 32.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
               Container(
                 padding: EdgeInsets.all(12.w),
                 decoration: BoxDecoration(
@@ -161,7 +175,7 @@ class InventoryPage extends StatelessWidget {
           SizedBox(height: 16.h),
           RichText(
             text: TextSpan(
-              text: '6',
+              text: '$itemsCount',
               style: GoogleFonts.inter(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w700,
@@ -169,7 +183,21 @@ class InventoryPage extends StatelessWidget {
               ),
               children: [
                 TextSpan(
-                  text: ' total items across all categories',
+                  text: ' total items (',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white.withOpacity(0.9),
+                  ),
+                ),
+                TextSpan(
+                  text: '${controller.totalStock.value}',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                TextSpan(
+                  text: ' in stock) across all categories',
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.w400,
                     color: Colors.white.withOpacity(0.9),
@@ -181,6 +209,7 @@ class InventoryPage extends StatelessWidget {
         ],
       ),
     );
+    });
   }
 
   Widget _buildSearchBar() {
@@ -196,42 +225,70 @@ class InventoryPage extends StatelessWidget {
           ),
         ],
       ),
-      child: TextField(
-        decoration: InputDecoration(
-          prefixIcon: const Icon(Icons.search, color: Colors.grey),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 16.w,
-            vertical: 14.h,
+      child: Obx(() {
+        final hasText = controller.searchQuery.value.isNotEmpty;
+        return TextField(
+          controller: searchController,
+          onChanged: controller.updateSearch,
+          style: GoogleFonts.inter(fontSize: 14.sp, color: AppColors.textColor),
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.search, color: Colors.grey),
+            suffixIcon: hasText
+                ? IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.grey),
+                    onPressed: () {
+                      searchController.clear();
+                      controller.updateSearch('');
+                    },
+                  )
+                : null,
+            hintText: 'Search inventory...',
+            hintStyle: GoogleFonts.inter(fontSize: 14.sp, color: Colors.grey),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 14.h,
+            ),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 
   Widget _buildCategories() {
-    return SizedBox(
-      height: 36.h,
-      child: Obx(
-        () => ListView.separated(
+    return Obx(() {
+      final selected = controller.selectedCategory.value;
+      return SizedBox(
+        height: 36.h,
+        child: ListView.separated(
+          key: ValueKey(selected),
           scrollDirection: Axis.horizontal,
           itemCount: controller.categories.length,
           separatorBuilder: (context, index) => SizedBox(width: 8.w),
           itemBuilder: (context, index) {
             final category = controller.categories[index];
-            final isSelected = controller.selectedCategory.value == category;
+            final isSelected = selected == category;
             return GestureDetector(
               onTap: () => controller.selectCategory(category),
-              child: Container(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
                 padding: EdgeInsets.symmetric(horizontal: 20.w),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.buttonColor
-                      : AppColors.whiteColor,
+                  color: isSelected ? AppColors.buttonColor : Colors.white,
                   borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(
+                    color: isSelected ? AppColors.buttonColor : Colors.grey.withOpacity(0.2),
+                    width: 1,
+                  ),
                   boxShadow: [
-                    if (!isSelected)
+                    if (isSelected)
+                      BoxShadow(
+                        color: AppColors.buttonColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      )
+                    else
                       BoxShadow(
                         color: Colors.black.withOpacity(0.05),
                         blurRadius: 4,
@@ -251,56 +308,99 @@ class InventoryPage extends StatelessWidget {
             );
           },
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildItemsGrid() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.72,
-        crossAxisSpacing: 16.w,
-        mainAxisSpacing: 16.h,
-      ),
-      itemCount: 2, // Hardcoded for 2 items in screenshot
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return _buildInventoryItem(
-            imageUrl:
-                'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=400&auto=format&fit=crop',
-            title: 'Professional Camera',
-            category: 'Photography',
-            price: '\$2,500',
-          );
-        } else {
-          return _buildInventoryItem(
-            imageUrl:
-                'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?q=80&w=400&auto=format&fit=crop',
-            title: 'Wireless Microphone',
-            category: 'Audio',
-            price: '\$450',
-          );
-        }
-      },
-    );
+    return Obx(() {
+      final selectedCategory = controller.selectedCategory.value;
+      
+      final query = controller.searchQuery.value;
+
+      final displayItems = controller.inventoryItems.where((item) {
+        final matchesCategory = selectedCategory == 'All' ||
+            item.category.toLowerCase() == selectedCategory.toLowerCase();
+        final matchesSearch = query.isEmpty ||
+            item.name.toLowerCase().contains(query) ||
+            item.category.toLowerCase().contains(query);
+        return matchesCategory && matchesSearch;
+      }).toList();
+
+      if (controller.isInventoryLoading.value && displayItems.isEmpty) {
+        return Padding(
+          padding: EdgeInsets.all(40.h),
+          child: const Center(child: CircularProgressIndicator()),
+        );
+      }
+      
+      if (displayItems.isEmpty) {
+        return Padding(
+          padding: EdgeInsets.all(40.h),
+          child: Center(
+            child: Text(
+              'No inventory items found for this category',
+              style: GoogleFonts.inter(
+                fontSize: 14.sp,
+                color: AppColors.subTextColor,
+              ),
+            ),
+          ),
+        );
+      }
+
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.72,
+          crossAxisSpacing: 16.w,
+          mainAxisSpacing: 16.h,
+        ),
+        itemCount: displayItems.length,
+        itemBuilder: (context, index) {
+          final item = displayItems[index];
+          return _buildInventoryItem(context, item);
+        },
+      );
+    });
   }
 
-  Widget _buildInventoryItem({
-    required String imageUrl,
-    required String title,
-    required String category,
-    required String price,
-  }) {
+  Widget _buildInventoryItem(BuildContext context, InventoryItem item) {
     return ItemCardWidget(
-      name: title,
-      category: category,
-      price: price,
-      imageUrl: imageUrl,
-      onDelete: () {},
+      name: item.name,
+      category: item.category,
+      price: '\$${item.cost}',
+      imageUrl: item.cleanedImageUrl,
+      stock: item.stock,
       showQuantityControls: false,
+      onEdit: () {
+        Get.to(() => AddInventoryItemPage(editItem: item));
+      },
+      onDelete: () async {
+        final confirmed = await Get.dialog<bool>(
+          AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+            title: Text('Delete Item', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+            content: Text('Are you sure you want to delete "${item.name}"?',
+                style: GoogleFonts.inter(fontSize: 14.sp)),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(result: false),
+                child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.boxTextColor)),
+              ),
+              TextButton(
+                onPressed: () => Get.back(result: true),
+                child: Text('Delete', style: GoogleFonts.inter(color: AppColors.redColor, fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+        );
+        if (confirmed == true) {
+          controller.deleteInventoryItem(item.id);
+        }
+      },
     );
   }
 }

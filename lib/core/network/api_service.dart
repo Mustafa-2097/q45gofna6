@@ -54,6 +54,16 @@ class ApiService {
     return response;
   }
 
+  /// DELETE Request
+  static Future<http.Response> delete(String url) async {
+    final headers = await _getHeaders();
+    log('DELETE URL: $url');
+    final response = await http.delete(Uri.parse(url), headers: headers);
+    log('Response Status: ${response.statusCode}');
+    log('Response Body: ${response.body}');
+    return response;
+  }
+
   // ================= AUTH METHODS =================
 
   /// Login
@@ -156,6 +166,31 @@ class ApiService {
   static Future<http.Response> getStatistics() async {
     return await get(ApiEndpoints.statistics);
   }
+
+  /// Update Profile
+  static Future<http.StreamedResponse> updateProfile({
+    required Map<String, dynamic> data,
+    String? imagePath,
+  }) async {
+    final headers = await _getHeaders();
+    final request = http.MultipartRequest('PATCH', Uri.parse(ApiEndpoints.updateProfile));
+
+    request.headers.addAll({
+      if (headers.containsKey('Authorization'))
+        'Authorization': headers['Authorization']!
+    });
+    
+    request.fields['data'] = jsonEncode(data);
+
+    if (imagePath != null && imagePath.isNotEmpty) {
+      request.files.add(await http.MultipartFile.fromPath('avatar', imagePath));
+    }
+
+    log('PATCH Profile URL: ${ApiEndpoints.updateProfile}');
+    log('PATCH Profile Fields: ${request.fields}');
+    
+    return await request.send();
+  }
   // ================= CATEGORIES METHODS =================
   
   /// Get Categories
@@ -169,5 +204,75 @@ class ApiService {
       'name': name,
     };
     return await post(ApiEndpoints.categories, body);
+  }
+
+  // ================= INVENTORY METHODS =================
+  
+  /// Get Inventory Items
+  static Future<http.Response> getInventoryItems() async {
+    return await get(ApiEndpoints.inventory);
+  }
+
+  /// Create Inventory Item
+  static Future<http.StreamedResponse> createInventoryItemWithImage({
+    required Map<String, dynamic> data,
+    String? imagePath,
+  }) async {
+    final headers = await _getHeaders();
+    final request = http.MultipartRequest('POST', Uri.parse(ApiEndpoints.inventory));
+
+    request.headers.addAll({
+      if (headers.containsKey('Authorization'))
+        'Authorization': headers['Authorization']!
+    });
+    
+    request.fields['data'] = jsonEncode(data);
+
+    if (imagePath != null && imagePath.isNotEmpty) {
+      request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+    }
+
+    log('POST Multipart URL: ${ApiEndpoints.inventory}');
+    log('POST Multipart Fields: ${request.fields}');
+    
+    return await request.send();
+  }
+
+  /// Update Inventory Item (PATCH multipart)
+  static Future<http.StreamedResponse> updateInventoryItemWithImage({
+    required String id,
+    required Map<String, dynamic> data,
+    String? imagePath,
+  }) async {
+    final headers = await _getHeaders();
+    final url = ApiEndpoints.inventoryUpdate.replaceFirst(':id', id);
+    final request = http.MultipartRequest('PATCH', Uri.parse(url));
+
+    request.headers.addAll({
+      if (headers.containsKey('Authorization'))
+        'Authorization': headers['Authorization']!
+    });
+
+    request.fields['data'] = jsonEncode(data);
+
+    if (imagePath != null && imagePath.isNotEmpty) {
+      request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+    }
+
+    log('PATCH Multipart URL: $url');
+    log('PATCH Multipart Fields: ${request.fields}');
+
+    return await request.send();
+  }
+
+  /// Delete Inventory Item
+  static Future<http.Response> deleteInventoryItem(String id) async {
+    final url = ApiEndpoints.inventoryDelete.replaceFirst(':id', id);
+    return await delete(url);
+  }
+
+  /// Get Inventory Statistics
+  static Future<http.Response> getInventoryStatistics() async {
+    return await get(ApiEndpoints.inventoryStatistics);
   }
 }

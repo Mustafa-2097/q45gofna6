@@ -23,7 +23,7 @@ class ApiEndpoints {
 
   /// User / Profile
   static const String profile = '$baseUrl/profile';
-  static const String updateProfile = '$baseUrl/me/profile';
+  static const String updateProfile = '$baseUrl/profile';
   //static const String updateAvatar = '$baseUrl/me/avatar';
   static const String statistics = '$baseUrl/profile/statistics';
   //
@@ -33,6 +33,13 @@ class ApiEndpoints {
 
   /// Categories
   static const String categories = '$baseUrl/categories';
+
+  /// Events
+  static const String inventory = '$baseUrl/inventory-items';
+  static const String inventoryUpdate= '$baseUrl/inventory-items/:id';
+  static const String inventoryDelete = '$baseUrl/inventory-items/:id';
+  static const String inventoryStatistics = '$baseUrl/inventory-items/statistics';
+
 
   /// Courses
   static const String courses = '$baseUrl/courses';

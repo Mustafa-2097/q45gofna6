@@ -9,11 +9,13 @@ class ItemCardWidget extends StatelessWidget {
   final String category;
   final String price;
   final String imageUrl;
-  final int quantity;
+  final int stock;
   final VoidCallback? onDelete;
+  final VoidCallback? onEdit;
   final VoidCallback? onIncrease;
   final VoidCallback? onDecrease;
   final bool showQuantityControls;
+  final int quantity;
 
   const ItemCardWidget({
     super.key,
@@ -21,11 +23,13 @@ class ItemCardWidget extends StatelessWidget {
     required this.category,
     required this.price,
     required this.imageUrl,
-    this.quantity = 1,
+    this.stock = 0,
     this.onDelete,
+    this.onEdit,
     this.onIncrease,
     this.onDecrease,
     this.showQuantityControls = true,
+    this.quantity = 1,
   });
 
   @override
@@ -48,6 +52,7 @@ class ItemCardWidget extends StatelessWidget {
           Expanded(
             child: Stack(
               children: [
+                // Image
                 Container(
                   margin: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
@@ -73,38 +78,18 @@ class ItemCardWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (onDelete != null)
+                // 3-dot menu top right
+                if (onEdit != null || onDelete != null)
                   Positioned(
-                    top: 14.h,
-                    right: 14.w,
-                    child: GestureDetector(
-                      onTap: onDelete,
-                      child: Container(
-                        padding: EdgeInsets.all(6.w),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.delete_outline,
-                          color: AppColors.redColor,
-                          size: 16.w,
-                        ),
-                      ),
-                    ),
+                    top: 10.h,
+                    right: 10.w,
+                    child: _ThreeDotMenu(onEdit: onEdit, onDelete: onDelete),
                   ),
               ],
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.w),
+            padding: EdgeInsets.fromLTRB(12.w, 6.h, 12.w, 12.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -127,29 +112,26 @@ class ItemCardWidget extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 8.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      price,
-                      style: GoogleFonts.inter(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF2E61E6),
+                if (showQuantityControls)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        price,
+                        style: GoogleFonts.inter(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF2E61E6),
+                        ),
                       ),
-                    ),
-                    if (showQuantityControls)
                       Row(
                         children: [
                           GestureDetector(
                             onTap: onDecrease,
-                            child: Icon(
-                              Icons.remove_circle_outline,
-                              color: AppColors.redColor,
-                              size: 18.w,
-                            ),
+                            child: Icon(Icons.remove_circle_outline,
+                                color: AppColors.redColor, size: 18.w),
                           ),
-                          SizedBox(width: 8.w),
+                          SizedBox(width: 6.w),
                           Text(
                             quantity.toString(),
                             style: GoogleFonts.inter(
@@ -158,25 +140,109 @@ class ItemCardWidget extends StatelessWidget {
                               color: AppColors.textColor,
                             ),
                           ),
-                          SizedBox(width: 8.w),
+                          SizedBox(width: 6.w),
                           GestureDetector(
                             onTap: onIncrease,
-                            child: Icon(
-                              Icons.add_circle_outline,
-                              color: const Color(0xFF1B4E9B),
-                              size: 18.w,
-                            ),
+                            child: Icon(Icons.add_circle_outline,
+                                color: const Color(0xFF1B4E9B), size: 18.w),
                           ),
                         ],
                       ),
-                  ],
-                ),
-                SizedBox(height: 12.h),
+                    ],
+                  )
+                else
+                  // Inventory card style: price + stock side by side
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        price,
+                        style: GoogleFonts.inter(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF2E61E6),
+                        ),
+                      ),
+                      Text(
+                        stock.toString(),
+                        style: GoogleFonts.inter(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textColor,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ThreeDotMenu extends StatelessWidget {
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+
+  const _ThreeDotMenu({this.onEdit, this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      onSelected: (value) {
+        if (value == 'edit') onEdit?.call();
+        if (value == 'delete') onDelete?.call();
+      },
+      padding: EdgeInsets.zero,
+      constraints: BoxConstraints(minWidth: 130.w),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      elevation: 4,
+      color: Colors.white,
+      child: Container(
+        padding: EdgeInsets.all(4.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(Icons.more_vert, size: 16.w, color: AppColors.textColor),
+      ),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'edit',
+          child: Row(
+            children: [
+              Icon(Icons.edit_outlined, size: 16.w, color: AppColors.buttonColor),
+              SizedBox(width: 8.w),
+              Text(
+                'Edit',
+                style: TextStyle(fontSize: 13.sp, color: AppColors.textColor),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete_outline, size: 16.w, color: AppColors.redColor),
+              SizedBox(width: 8.w),
+              Text(
+                'Delete',
+                style: TextStyle(fontSize: 13.sp, color: AppColors.redColor),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
