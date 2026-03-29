@@ -23,11 +23,31 @@ class ProfileUpdatePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Profile',
-                style: AppTextStyles.title32(context).copyWith(color: AppColors.textColor),
+              /// AppBar
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Get.back(),
+                    child: Container(
+                      width: 48.w, // Made the circle bigger
+                      height: 48.w,
+                      decoration: const BoxDecoration(
+                        color: AppColors.whiteColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.arrow_back, color: AppColors.textColor, size: 24.sp),
+                    ),
+                  ),
+                  SizedBox(width: 16.w),
+                  Text(
+                    'Profile',
+                    style: AppTextStyles.title32(context).copyWith(color: AppColors.textColor),
+                  ),
+                ],
               ),
               SizedBox(height: 24.h),
+
+              /// Profile Information
               Container(
                 padding: EdgeInsets.all(20.w),
                 decoration: BoxDecoration(
@@ -118,6 +138,8 @@ class ProfileUpdatePage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 24.h),
+
+              /// Save Changes Button
               Obx(() {
                 return SizedBox(
                   width: double.infinity,
@@ -219,43 +241,73 @@ class ProfileUpdatePage extends StatelessWidget {
       child: Obx(() {
         final hasNewImage = controller.selectedImagePath.value.isNotEmpty;
         final existingAvatar = controller.userProfile.value?.profile.cleanedAvatarUrl;
+        final hasAnyImage = hasNewImage || (existingAvatar != null && existingAvatar.isNotEmpty);
         
-        return Container(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF7F8FA),
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: const Color(0xFFE0E0E0)),
-            image: hasNewImage
-                ? DecorationImage(
-                    image: FileImage(File(controller.selectedImagePath.value)),
-                    fit: BoxFit.cover,
-                  )
-                : (existingAvatar != null && existingAvatar.isNotEmpty)
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: hasAnyImage ? 160.w : double.infinity,
+              height: hasAnyImage ? 140.h : 60.h,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F8FA),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(color: const Color(0xFFE0E0E0)),
+                image: hasNewImage
                     ? DecorationImage(
-                        image: NetworkImage(existingAvatar),
+                        image: FileImage(File(controller.selectedImagePath.value)),
                         fit: BoxFit.cover,
+                        colorFilter: ColorFilter.mode(
+                          Colors.black.withOpacity(0.4),
+                          BlendMode.darken,
+                        ),
                       )
-                    : null,
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.center_focus_weak_outlined,
-                color: hasNewImage || (existingAvatar != null && existingAvatar.isNotEmpty) ? Colors.white : AppColors.textColor,
-                size: 24.w,
+                    : (existingAvatar != null && existingAvatar.isNotEmpty)
+                        ? DecorationImage(
+                            image: NetworkImage(existingAvatar),
+                            fit: BoxFit.cover,
+                            colorFilter: ColorFilter.mode(
+                              Colors.black.withOpacity(0.4),
+                              BlendMode.darken,
+                            ),
+                          )
+                        : null,
               ),
-              SizedBox(width: 12.w),
-              Text(
-                'Upload / Capture Photo',
-                style: GoogleFonts.inter(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w500,
-                  color: hasNewImage || (existingAvatar != null && existingAvatar.isNotEmpty) ? Colors.white : const Color(0xFF6B9BF8),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  hasAnyImage ? Icons.camera_alt_outlined : Icons.center_focus_weak_outlined,
+                  color: hasAnyImage ? Colors.white : AppColors.textColor,
+                  size: 24.w,
                 ),
-              ),
-            ],
-          ),
+                SizedBox(width: 12.w),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      hasAnyImage ? 'Change Photo' : 'Upload / Capture Photo',
+                      style: GoogleFonts.inter(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: hasAnyImage ? Colors.white : const Color(0xFF6B9BF8),
+                      ),
+                    ),
+                    if (hasAnyImage)
+                      Text(
+                        'Tap to update picture',
+                        style: GoogleFonts.inter(
+                          fontSize: 12.sp,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         );
       }),
     );

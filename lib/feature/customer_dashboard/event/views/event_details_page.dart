@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:q45gofna6/core/constant/widgets/primary_button.dart';
 
 import '../../../../core/constant/app_colors.dart';
+import '../controllers/event_controller.dart';
+import 'new_event_page.dart';
 import 'add_kit_page.dart';
 import 'capture_before_image_page.dart';
 import 'capture_after_image_page.dart';
 import 'ai_audit_page.dart';
 
 class EventDetailsPage extends StatelessWidget {
-  const EventDetailsPage({super.key});
+  final EventModel event;
+  const EventDetailsPage({super.key, required this.event});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +34,11 @@ class EventDetailsPage extends StatelessWidget {
                     SizedBox(height: 20.h),
                     _buildAuditProgress(),
                     SizedBox(height: 20.h),
-                    _buildEventKit(),
+                    //_buildEventKit(),
+                    // edit event section method will be here
+
+                    SizedBox(height: 20.h),
+                    PrimaryButton(text: "Mark as Complete", onPressed: () {}),
                     SizedBox(height: 20.h),
                   ],
                 ),
@@ -63,12 +71,35 @@ class EventDetailsPage extends StatelessWidget {
             ),
           ),
           SizedBox(width: 16.w),
-          Text(
-            'Event Name',
-            style: GoogleFonts.inter(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textColor,
+          Expanded(
+            child: Text(
+              event.title,
+              style: GoogleFonts.inter(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textColor,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              final controller = Get.find<EventController>();
+              controller.setEditEvent(event);
+              Get.to(() => NewEventPage());
+            },
+            child: Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: BoxDecoration(
+                color: AppColors.buttonColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.edit,
+                color: AppColors.buttonColor,
+                size: 20.w,
+              ),
             ),
           ),
         ],
@@ -118,7 +149,7 @@ class EventDetailsPage extends StatelessWidget {
                   ),
                   SizedBox(height: 4.h),
                   Text(
-                    'Feb 22, 2026',
+                    event.date.split('T')[0],
                     style: GoogleFonts.inter(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w700,
@@ -149,7 +180,7 @@ class EventDetailsPage extends StatelessWidget {
                   ),
                   SizedBox(height: 4.h),
                   Text(
-                    '1 items',
+                    event.items,
                     style: GoogleFonts.inter(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w700,
@@ -161,9 +192,7 @@ class EventDetailsPage extends StatelessWidget {
               SizedBox(width: 10.w), // Space filler
             ],
           ),
-          SizedBox(height: 16.h),
-          Divider(color: Colors.white.withOpacity(0.2)),
-          SizedBox(height: 16.h),
+          SizedBox(height: 22.h),
           Row(
             children: [
               Icon(
@@ -183,7 +212,7 @@ class EventDetailsPage extends StatelessWidget {
           ),
           SizedBox(height: 4.h),
           Text(
-            '\$450',
+            event.price,
             style: GoogleFonts.inter(
               fontSize: 20.sp,
               fontWeight: FontWeight.w700,
@@ -450,64 +479,64 @@ class EventDetailsPage extends StatelessWidget {
   }
 
 
-  Widget _buildEventKit() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      padding: EdgeInsets.all(16.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Event Kit (1 items)',
-                style: GoogleFonts.inter(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textColor,
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Get.to(() => const AddKitPage());
-                },
-                child: Container(
-                  padding: EdgeInsets.all(8.w),
-                  decoration: BoxDecoration(
-                    color: AppColors.buttonColor,
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: Icon(Icons.add, color: Colors.white, size: 20.w),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 16.h),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 16.w,
-            crossAxisSpacing: 16.w,
-            childAspectRatio: 0.75,
-            children: [
-              _buildItemCard(
-                name: 'Wireless Microphone',
-                category: 'Audio',
-                price: '\$450',
-                imageUrl:
-                    'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildEventKit() {
+  //   return Container(
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(16.r),
+  //     ),
+  //     padding: EdgeInsets.all(16.w),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             Text(
+  //               'Event Kit (1 items)',
+  //               style: GoogleFonts.inter(
+  //                 fontSize: 16.sp,
+  //                 fontWeight: FontWeight.w700,
+  //                 color: AppColors.textColor,
+  //               ),
+  //             ),
+  //             GestureDetector(
+  //               onTap: () {
+  //                 Get.to(() => const AddKitPage());
+  //               },
+  //               child: Container(
+  //                 padding: EdgeInsets.all(8.w),
+  //                 decoration: BoxDecoration(
+  //                   color: AppColors.buttonColor,
+  //                   borderRadius: BorderRadius.circular(12.r),
+  //                 ),
+  //                 child: Icon(Icons.add, color: Colors.white, size: 20.w),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         SizedBox(height: 16.h),
+  //         GridView.count(
+  //           crossAxisCount: 2,
+  //           shrinkWrap: true,
+  //           physics: const NeverScrollableScrollPhysics(),
+  //           mainAxisSpacing: 16.w,
+  //           crossAxisSpacing: 16.w,
+  //           childAspectRatio: 0.75,
+  //           children: [
+  //             _buildItemCard(
+  //               name: 'Wireless Microphone',
+  //               category: 'Audio',
+  //               price: '\$450',
+  //               imageUrl:
+  //                   'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildItemCard({
     required String name,

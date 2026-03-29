@@ -25,32 +25,26 @@ class ApiEndpoints {
   static const String profile = '$baseUrl/profile';
   static const String updateProfile = '$baseUrl/profile';
   //static const String updateAvatar = '$baseUrl/me/avatar';
-  static const String statistics = '$baseUrl/profile/statistics';
-  //
-  static const String contact = '$baseUrl/me/contact';
-  static const String educateEmployee = '$baseUrl/me/educate-employee';
-
+  static const String profileStatistics = '$baseUrl/profile/statistics';
 
   /// Categories
   static const String categories = '$baseUrl/categories';
+  static const String categoriesUpdate = '$baseUrl/categories/:id';
+  static const String categoriesDelete = '$baseUrl/categories/:id';
 
-  /// Events
+  /// Inventory
   static const String inventory = '$baseUrl/inventory-items';
   static const String inventoryUpdate= '$baseUrl/inventory-items/:id';
   static const String inventoryDelete = '$baseUrl/inventory-items/:id';
   static const String inventoryStatistics = '$baseUrl/inventory-items/statistics';
 
+  /// Events
+  static const String events = '$baseUrl/events';
+  static const String eventsUpdate = '$baseUrl/events/:id';
+  static const String eventsDelete = '$baseUrl/events/:id';
+  static const String eventsStatistics = '$baseUrl/events/statistics';
+  static const String eventUpdateComplete = '$baseUrl/events/:id/complete';
 
-  /// Courses
-  static const String courses = '$baseUrl/courses';
-  static const String nextVideo = '$baseUrl/courses/:id/next-video';
-
-
-  // Lesson's Review
-  static const String review = '$baseUrl/lessons/:id/review';
-
-  // Exam questions
-  static const String questions = '$baseUrl/lessons/:id/questions';
 
 }
 

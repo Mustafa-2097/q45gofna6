@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constant/app_colors.dart';
 import '../../../../core/constant/widgets/primary_button.dart';
 import '../../../../core/constant/widgets/item_card_widget.dart';
+import '../controllers/event_controller.dart';
+import '../../inventory/controllers/inventory_controller.dart';
 import 'event_details_page.dart';
 
 class SelectEventItemsPage extends StatefulWidget {
@@ -16,8 +19,30 @@ class SelectEventItemsPage extends StatefulWidget {
 }
 
 class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
-  final List<String> categories = ['Table', 'Camera', 'Flower', 'Stage'];
-  String selectedCategory = 'Camera';
+  final EventController controller = Get.find<EventController>();
+  final InventoryController inventoryController = Get.find<InventoryController>();
+  final ScrollController scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Reset to page 1 and fresh load every time this page is visited
+    inventoryController.fetchInventoryItems();
+    scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+      inventoryController.fetchInventoryItems(isLoadMore: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    scrollController.removeListener(_onScroll);
+    scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,18 +54,21 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
             _buildHeader(),
             Expanded(
               child: SingleChildScrollView(
+                controller: scrollController,
                 padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: Column(
                   children: [
-                    _buildSummaryCard(),
+                    Obx(() => _buildSummaryCard()),
                     SizedBox(height: 16.h),
                     _buildSelectItemsHeader(),
                     SizedBox(height: 16.h),
                     _buildSearchBar(),
                     SizedBox(height: 16.h),
-                    _buildCategories(),
+                    Obx(() => _buildCategories()),
                     SizedBox(height: 20.h),
-                    _buildItemsGrid(),
+                    Obx(() => _buildItemsGrid()),
+                    SizedBox(height: 12.h),
+                    Obx(() => _buildLoadMoreIndicator()),
                     SizedBox(height: 20.h),
                   ],
                 ),
@@ -49,9 +77,16 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
             Padding(
               padding: EdgeInsets.all(20.w),
               child: PrimaryButton(
-                text: "Create Event",
-                onPressed: () {
-                  Get.to(() => const EventDetailsPage());
+                text: controller.editEventId != null ? "Update Event" : "Create Event",
+                onPressed: () async {
+                  if (controller.selectedItems.isEmpty) {
+                    EasyLoading.showError('Please select at least one item');
+                    return;
+                  }
+                  final event = await controller.createEvent();
+                  if (event != null) {
+                    Get.off(() => EventDetailsPage(event: event));
+                  }
                 },
               ),
             ),
@@ -83,7 +118,7 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
           ),
           SizedBox(width: 16.w),
           Text(
-            'New Event',
+            controller.editEventId != null ? 'Edit Event' : 'New Event',
             style: GoogleFonts.inter(
               fontSize: 20.sp,
               fontWeight: FontWeight.w700,
@@ -96,6 +131,16 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
   }
 
   Widget _buildSummaryCard() {
+    final selectedCount = controller.selectedItems.length;
+    // Calculate total value based on selected items if possible
+    double totalValue = 0;
+    for (var id in controller.selectedItems) {
+      final item = inventoryController.inventoryItems.firstWhereOrNull((i) => i.id == id);
+      if (item != null) {
+        totalValue += (item.cost * (controller.selectedItemQuantities[id] ?? 1));
+      }
+    }
+
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -127,7 +172,7 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
                   ),
                   SizedBox(height: 4.h),
                   Text(
-                    '2',
+                    '$selectedCount',
                     style: GoogleFonts.inter(
                       fontSize: 24.sp,
                       fontWeight: FontWeight.w700,
@@ -150,9 +195,9 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
               ),
             ],
           ),
-          SizedBox(height: 16.h),
-          Divider(color: Colors.white.withOpacity(0.2)),
-          SizedBox(height: 16.h),
+          SizedBox(height: 8.h),
+          Divider(color: Colors.white),
+          SizedBox(height: 8.h),
           Text(
             'Total Kit Value',
             style: GoogleFonts.inter(
@@ -162,7 +207,7 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
           ),
           SizedBox(height: 4.h),
           Text(
-            '\$2,950',
+            '\$${totalValue.toStringAsFixed(2)}',
             style: GoogleFonts.inter(
               fontSize: 20.sp,
               fontWeight: FontWeight.w700,
@@ -176,7 +221,7 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
 
   Widget _buildSelectItemsHeader() {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
@@ -195,13 +240,13 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
                 ),
               ),
               SizedBox(height: 4.h),
-              Text(
-                '4 items available',
+              Obx(() => Text(
+                '${inventoryController.inventoryItems.length} items available',
                 style: GoogleFonts.inter(
                   fontSize: 12.sp,
                   color: AppColors.boxTextColor,
                 ),
-              ),
+              )),
             ],
           ),
         ],
@@ -222,8 +267,9 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
           SizedBox(width: 8.w),
           Expanded(
             child: TextField(
+              onChanged: (v) => inventoryController.updateSearch(v),
               decoration: InputDecoration(
-                hintText: '',
+                hintText: 'Search items...',
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(vertical: 12.h),
@@ -239,14 +285,10 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: categories.map((category) {
-          final isSelected = selectedCategory == category;
+        children: inventoryController.categories.map((category) {
+          final isSelected = inventoryController.selectedCategory.value == category;
           return GestureDetector(
-            onTap: () {
-              setState(() {
-                selectedCategory = category;
-              });
-            },
+            onTap: () => inventoryController.selectCategory(category),
             child: Container(
               margin: EdgeInsets.only(right: 12.w),
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -269,63 +311,101 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
     );
   }
 
-  Widget _buildItemsGrid() {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 16.w,
-      crossAxisSpacing: 16.w,
-      childAspectRatio: 0.75,
-      children: [
-        _buildItemCard(
-          name: 'Professional Camera',
-          category: 'Photography',
-          price: '\$2,500',
-          imageUrl:
-              'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=800&auto=format&fit=crop',
+  Widget _buildLoadMoreIndicator() {
+    if (inventoryController.isMoreLoading.value) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 8.h),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (!inventoryController.hasMore.value && inventoryController.inventoryItems.isNotEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 8.h),
+        child: Center(
+          child: Text(
+            'No more items',
+            style: GoogleFonts.inter(
+              fontSize: 12.sp,
+              color: AppColors.subTextColor,
+            ),
+          ),
         ),
-        _buildItemCard(
-          name: 'Wireless Microphone',
-          category: 'Audio',
-          price: '\$450',
-          imageUrl:
-              'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
-        ),
-        _buildItemCard(
-          name: 'Wireless Microphone',
-          category: 'Audio',
-          price: '\$450',
-          imageUrl:
-              'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
-        ),
-        _buildItemCard(
-          name: 'Wireless Microphone',
-          category: 'Audio',
-          price: '\$450',
-          imageUrl:
-              'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
-        ),
-      ],
-    );
+      );
+    }
+    return const SizedBox.shrink();
   }
 
-  Widget _buildItemCard({
-    required String name,
-    required String category,
-    required String price,
-    required String imageUrl,
-  }) {
-    return ItemCardWidget(
-      name: name,
-      category: category,
-      price: price,
-      imageUrl: imageUrl,
-      quantity: 1, // Example static quantity for UI representation
-      onDecrease: () {},
-      onIncrease: () {},
-      onDelete: () {},
-      showQuantityControls: true,
+  Widget _buildItemsGrid() {
+    final items = inventoryController.inventoryItems;
+    if (inventoryController.isInventoryLoading.value) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (items.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Text('No items found'),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 16.w,
+        crossAxisSpacing: 16.w,
+        childAspectRatio: 0.75,
+      ),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return GestureDetector(
+          onTap: () {
+            controller.toggleItemSelection(item.id);
+          },
+          child: Obx(() {
+            final isSelected = controller.selectedItems.contains(item.id);
+            final currentQuantity = controller.selectedItemQuantities[item.id] ?? 1;
+            return Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16.r),
+                border: Border.all(
+                  color: isSelected ? AppColors.buttonColor : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  ItemCardWidget(
+                    name: item.name,
+                    category: item.category,
+                    price: '\$${item.cost}',
+                    imageUrl: item.cleanedImageUrl,
+                    stock: item.stock,
+                    showQuantityControls: isSelected,
+                    quantity: currentQuantity,
+                    onIncrease: () => controller.increaseQuantity(item.id, item.stock),
+                    onDecrease: () => controller.decreaseQuantity(item.id),
+                  ),
+                  if (isSelected)
+                    Positioned(
+                      top: 10.w,
+                      right: 10.w,
+                      child: Container(
+                        padding: EdgeInsets.all(4.w),
+                        decoration: const BoxDecoration(
+                          color: AppColors.buttonColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.check, color: Colors.white, size: 16.w),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          }),
+        );
+      },
     );
   }
 }

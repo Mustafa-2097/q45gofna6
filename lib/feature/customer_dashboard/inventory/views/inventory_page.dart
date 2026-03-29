@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constant/app_colors.dart';
@@ -13,9 +14,16 @@ class InventoryPage extends StatelessWidget {
   InventoryPage({super.key});
   final InventoryController controller = Get.find<InventoryController>();
   final TextEditingController searchController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+        controller.fetchInventoryItems(isLoadMore: true);
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       floatingActionButton: SizedBox(
@@ -39,6 +47,7 @@ class InventoryPage extends StatelessWidget {
             await controller.fetchInventoryStatistics();
           },
           child: SingleChildScrollView(
+            controller: scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
             child: Column(
@@ -272,7 +281,7 @@ class InventoryPage extends StatelessWidget {
               onTap: () => controller.selectCategory(category),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                padding: EdgeInsets.symmetric(horizontal: 12.w),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.buttonColor : Colors.white,
@@ -296,13 +305,64 @@ class InventoryPage extends StatelessWidget {
                       ),
                   ],
                 ),
-                child: Text(
-                  category,
-                  style: GoogleFonts.inter(
-                    fontSize: 14.sp,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected ? Colors.white : AppColors.textColor,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      category,
+                      style: GoogleFonts.inter(
+                        fontSize: 14.sp,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        color: isSelected ? Colors.white : AppColors.textColor,
+                      ),
+                    ),
+                    if (category != 'All') ...[
+                      SizedBox(width: 4.w),
+                      PopupMenuButton<String>(
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(minWidth: 100.w),
+                        icon: Icon(
+                          Icons.arrow_drop_down_outlined,
+                          color: isSelected ? Colors.white : AppColors.textColor,
+                          size: 24.w,
+                        ),
+                        onSelected: (value) async {
+                          final categoryId = controller.categoryMap[category];
+                          if (categoryId == null) return;
+
+                          if (value == 'edit') {
+                            _showEditCategoryDialog(context, categoryId, category);
+                          } else if (value == 'delete') {
+                            _showDeleteCategoryConfirm(context, categoryId, category);
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'edit',
+                            height: 36.h,
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit, size: 16.w, color: AppColors.textColor),
+                                SizedBox(width: 8.w),
+                                Text('Edit', style: GoogleFonts.inter(fontSize: 13.sp)),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            height: 36.h,
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete, size: 16.w, color: Colors.red),
+                                SizedBox(width: 8.w),
+                                Text('Delete', style: GoogleFonts.inter(fontSize: 13.sp, color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
                 ),
               ),
             );
@@ -314,18 +374,7 @@ class InventoryPage extends StatelessWidget {
 
   Widget _buildItemsGrid() {
     return Obx(() {
-      final selectedCategory = controller.selectedCategory.value;
-      
-      final query = controller.searchQuery.value;
-
-      final displayItems = controller.inventoryItems.where((item) {
-        final matchesCategory = selectedCategory == 'All' ||
-            item.category.toLowerCase() == selectedCategory.toLowerCase();
-        final matchesSearch = query.isEmpty ||
-            item.name.toLowerCase().contains(query) ||
-            item.category.toLowerCase().contains(query);
-        return matchesCategory && matchesSearch;
-      }).toList();
+      final displayItems = controller.inventoryItems;
 
       if (controller.isInventoryLoading.value && displayItems.isEmpty) {
         return Padding(
@@ -349,20 +398,42 @@ class InventoryPage extends StatelessWidget {
         );
       }
 
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.72,
-          crossAxisSpacing: 16.w,
-          mainAxisSpacing: 16.h,
-        ),
-        itemCount: displayItems.length,
-        itemBuilder: (context, index) {
-          final item = displayItems[index];
-          return _buildInventoryItem(context, item);
-        },
+      return Column(
+        children: [
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.72,
+              crossAxisSpacing: 16.w,
+              mainAxisSpacing: 16.h,
+            ),
+            itemCount: displayItems.length,
+            itemBuilder: (context, index) {
+              final item = displayItems[index];
+              return _buildInventoryItem(context, item);
+            },
+          ),
+          if (controller.isMoreLoading.value)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.h),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+          if (!controller.hasMore.value && displayItems.isNotEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.h),
+              child: Center(
+                child: Text(
+                  'No more items',
+                  style: GoogleFonts.inter(
+                    fontSize: 12.sp,
+                    color: AppColors.subTextColor,
+                  ),
+                ),
+              ),
+            ),
+        ],
       );
     });
   }
@@ -401,6 +472,106 @@ class InventoryPage extends StatelessWidget {
           controller.deleteInventoryItem(item.id);
         }
       },
+    );
+  }
+
+  void _showEditCategoryDialog(BuildContext context, String id, String currentName) {
+    final TextEditingController editController = TextEditingController(text: currentName);
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Edit Category',
+                style: GoogleFonts.inter(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textColor,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              TextField(
+                controller: editController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Enter category name',
+                  hintStyle: GoogleFonts.inter(fontSize: 14.sp, color: AppColors.boxTextColor.withOpacity(0.5)),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: AppColors.stockColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: AppColors.stockColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: AppColors.buttonColor),
+                  ),
+                ),
+              ),
+              SizedBox(height: 24.h),
+              SizedBox(
+                width: double.infinity,
+                height: 52.h,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final newName = editController.text.trim();
+                    if (newName.isEmpty) return;
+                    
+                    if (newName == currentName) {
+                      Get.back(); // Just close dialog
+                      EasyLoading.showInfo('No changes made');
+                      return;
+                    }
+
+                    final success = await controller.updateCategory(id, newName);
+                    if (success) Get.back();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.buttonColor,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                    elevation: 0,
+                  ),
+                  child: Text('Save', style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w600, color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteCategoryConfirm(BuildContext context, String id, String name) {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title: Text('Delete Category', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+        content: Text('Are you sure you want to delete "$name"? This will affect all items in this category.',
+          style: GoogleFonts.inter(fontSize: 14.sp),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.boxTextColor)),
+          ),
+          TextButton(
+            onPressed: () async {
+              final success = await controller.deleteCategory(id);
+              if (success) Get.back();
+            },
+            child: Text('Delete', style: GoogleFonts.inter(color: Colors.red, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
     );
   }
 }

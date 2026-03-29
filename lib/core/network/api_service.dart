@@ -54,6 +54,23 @@ class ApiService {
     return response;
   }
 
+  /// PATCH Request
+  static Future<http.Response> patch(String url, Map<String, dynamic> body) async {
+    final headers = await _getHeaders();
+    log('PATCH URL: $url');
+    log('PATCH Body: ${jsonEncode(body)}');
+    
+    final response = await http.patch(
+      Uri.parse(url),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+    
+    log('Response Status: ${response.statusCode}');
+    log('Response Body: ${response.body}');
+    return response;
+  }
+
   /// DELETE Request
   static Future<http.Response> delete(String url) async {
     final headers = await _getHeaders();
@@ -164,7 +181,7 @@ class ApiService {
 
   /// Get Statistics
   static Future<http.Response> getStatistics() async {
-    return await get(ApiEndpoints.statistics);
+    return await get(ApiEndpoints.profileStatistics);
   }
 
   /// Update Profile
@@ -206,11 +223,44 @@ class ApiService {
     return await post(ApiEndpoints.categories, body);
   }
 
+  /// Update Category
+  static Future<http.Response> updateCategory({required String id, required String name}) async {
+    final body = {
+      'name': name,
+    };
+    final url = ApiEndpoints.categoriesUpdate.replaceFirst(':id', id);
+    return await patch(url, body);
+  }
+
+  /// Delete Category
+  static Future<http.Response> deleteCategory(String id) async {
+    final url = ApiEndpoints.categoriesDelete.replaceFirst(':id', id);
+    return await delete(url);
+  }
+
   // ================= INVENTORY METHODS =================
   
   /// Get Inventory Items
-  static Future<http.Response> getInventoryItems() async {
-    return await get(ApiEndpoints.inventory);
+  static Future<http.Response> getInventoryItems({String? search, String? categoryId, int? page, int? limit}) async {
+    String url = ApiEndpoints.inventory;
+    List<String> queryParams = [];
+    if (search != null && search.isNotEmpty) {
+      queryParams.add('search=${Uri.encodeComponent(search)}');
+    }
+    if (categoryId != null && categoryId.isNotEmpty) {
+      queryParams.add('category=$categoryId');
+    }
+    if (page != null) {
+      queryParams.add('page=$page');
+    }
+    if (limit != null) {
+      queryParams.add('limit=$limit');
+    }
+
+    if (queryParams.isNotEmpty) {
+      url += '?${queryParams.join('&')}';
+    }
+    return await get(url);
   }
 
   /// Create Inventory Item
@@ -274,5 +324,79 @@ class ApiService {
   /// Get Inventory Statistics
   static Future<http.Response> getInventoryStatistics() async {
     return await get(ApiEndpoints.inventoryStatistics);
+  }
+
+  // ================= EVENTS METHODS =================
+
+  /// Get Events with Pagination
+  static Future<http.Response> getEvents({int page = 1, int limit = 10}) async {
+    return await get('${ApiEndpoints.events}?page=$page&limit=$limit');
+  }
+
+  /// Get Single Event Details
+  static Future<http.Response> getEventById(String id) async {
+    final url = ApiEndpoints.eventsUpdate.replaceFirst(':id', id);
+    return await get(url);
+  }
+
+  /// Get Event Statistics
+  static Future<http.Response> getEventStatistics() async {
+    return await get(ApiEndpoints.eventsStatistics);
+  }
+
+  /// Create Event (Multipart)
+  static Future<http.StreamedResponse> createEventWithImage({
+    required Map<String, dynamic> data,
+    String? imagePath,
+  }) async {
+    final headers = await _getHeaders();
+    final request = http.MultipartRequest('POST', Uri.parse(ApiEndpoints.events));
+
+    request.headers.addAll({
+      if (headers.containsKey('Authorization'))
+        'Authorization': headers['Authorization']!
+    });
+    
+    // Backend expects entire JSON in a single 'data' field key + 'image' file separately
+    request.fields['data'] = jsonEncode(data);
+
+    if (imagePath != null && imagePath.isNotEmpty) {
+      // Assuming the backend expects field name 'image' or 'itemPhoto'
+      request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+    }
+
+    log('POST Event URL: ${ApiEndpoints.events}');
+    log('POST Event Fields: ${request.fields}');
+    
+    return await request.send();
+  }
+
+  /// Update Event (Multipart)
+  static Future<http.StreamedResponse> updateEventWithImage({
+    required String id,
+    required Map<String, dynamic> data,
+    String? imagePath,
+  }) async {
+    final headers = await _getHeaders();
+    final url = ApiEndpoints.eventsUpdate.replaceAll(':id', id);
+    final request = http.MultipartRequest('PATCH', Uri.parse(url));
+
+    request.headers.addAll({
+      if (headers.containsKey('Authorization'))
+        'Authorization': headers['Authorization']!
+    });
+    
+    // Backend expects entire JSON in a single 'data' field key + 'image' file separately
+    request.fields['data'] = jsonEncode(data);
+
+    if (imagePath != null && imagePath.isNotEmpty) {
+      // Assuming the backend expects field name 'image' or 'itemPhoto'
+      request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+    }
+
+    log('PATCH Event URL: $url');
+    log('PATCH Event Fields: ${request.fields}');
+    
+    return await request.send();
   }
 }

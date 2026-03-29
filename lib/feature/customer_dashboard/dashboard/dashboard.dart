@@ -7,6 +7,7 @@ import 'package:q45gofna6/feature/customer_dashboard/inventory/views/inventory_p
 import 'package:q45gofna6/feature/customer_dashboard/reports/views/reports_page.dart';
 import '../home/views/home_page.dart';
 import '../profile/views/profile_page.dart';
+import '../event/controllers/event_controller.dart';
 
 class CustomerDashboard extends StatefulWidget {
   final int initialIndex;
@@ -24,6 +25,7 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
   void initState() {
     super.initState();
     Get.put(InventoryController());
+    Get.put(EventController());
     
     _screens = [
       HomePage(),

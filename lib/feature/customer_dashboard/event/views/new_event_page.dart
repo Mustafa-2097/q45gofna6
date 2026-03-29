@@ -1,20 +1,23 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:q45gofna6/core/constant/widgets/primary_button.dart';
-
 import '../../../../core/constant/app_colors.dart';
 import '../../../../core/constant/widgets/global_form_layout.dart';
+import '../controllers/event_controller.dart';
 import 'select_event_items_page.dart';
 
 class NewEventPage extends StatelessWidget {
-  const NewEventPage({super.key});
+  NewEventPage({super.key});
+  final EventController controller = Get.find<EventController>();
 
   @override
   Widget build(BuildContext context) {
     return GlobalFormLayout(
-      title: 'New Event',
+      title: controller.editEventId != null ? 'Edit Event' : 'New Event',
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -27,16 +30,32 @@ class NewEventPage extends StatelessWidget {
             ),
           ),
           SizedBox(height: 20.h),
-          _buildInput(label: 'Event Date *', hintText: ''),
+          _buildInput(
+            label: 'Event Date *', 
+            hintText: 'Select date', 
+            controller: controller.dateController,
+            readOnly: true,
+            onTap: () async {
+              DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(2000),
+                lastDate: DateTime(2101),
+              );
+              if (pickedDate != null) {
+                controller.dateController.text = "${pickedDate.toLocal()}".split(' ')[0];
+              }
+            },
+          ),
           SizedBox(height: 16.h),
-          _buildInput(label: 'Event Name *', hintText: 'e.g., Conference 2026'),
+          _buildInput(label: 'Event Name *', hintText: 'e.g., Conference 2026', controller: controller.nameController),
           SizedBox(height: 16.h),
-          _buildInput(label: 'Event Note *', hintText: ''),
+          _buildInput(label: 'Event Note *', hintText: 'Enter notes', controller: controller.noteController),
           SizedBox(height: 16.h),
           _buildDropdown(label: 'Event Status*'),
           SizedBox(height: 16.h),
           Text(
-            'Item Photo',
+            'Item Photo*',
             style: GoogleFonts.inter(
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,
@@ -50,13 +69,35 @@ class NewEventPage extends StatelessWidget {
       bottomButton: PrimaryButton(
         text: "Next",
         onPressed: () {
-          Get.to(() => const SelectEventItemsPage());
+          if (controller.dateController.text.isEmpty) {
+            EasyLoading.showError('Please select event date');
+            return;
+          }
+          if (controller.nameController.text.isEmpty) {
+            EasyLoading.showError('Please enter event name');
+            return;
+          }
+          if (controller.noteController.text.isEmpty) {
+            EasyLoading.showError('Please enter event note');
+            return;
+          }
+          if (controller.selectedImagePath.value.isEmpty && controller.existingImageUrl == null) {
+            EasyLoading.showError('Please upload an item photo');
+            return;
+          }
+          Get.to(() => SelectEventItemsPage());
         },
       ),
     );
   }
 
-  Widget _buildInput({required String label, required String hintText}) {
+  Widget _buildInput({
+    required String label, 
+    required String hintText, 
+    required TextEditingController controller,
+    bool readOnly = false,
+    VoidCallback? onTap,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -70,6 +111,9 @@ class NewEventPage extends StatelessWidget {
         ),
         SizedBox(height: 8.h),
         TextField(
+          controller: controller,
+          readOnly: readOnly,
+          onTap: onTap,
           style: GoogleFonts.inter(
             fontSize: 14.sp,
             color: AppColors.textColor,
@@ -120,17 +164,22 @@ class NewEventPage extends StatelessWidget {
             border: Border.all(color: AppColors.stockColor, width: 1),
           ),
           child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
+            child: Obx(() => DropdownButton<String>(
               isExpanded: true,
-              value: null,
+              value: controller.selectedStatus.value,
               icon: Icon(
                 Icons.keyboard_arrow_down,
                 color: AppColors.textColor,
                 size: 24.w,
               ),
-              onChanged: (String? newValue) {},
-              items: const [],
-            ),
+              onChanged: (String? newValue) {
+                if (newValue != null) controller.selectedStatus.value = newValue;
+              },
+              items: [
+                DropdownMenuItem(value: 'ACTIVE', child: Text('Active', style: GoogleFonts.inter(fontSize: 14.sp))),
+                DropdownMenuItem(value: 'COMPLETED', child: Text('Completed', style: GoogleFonts.inter(fontSize: 14.sp))),
+              ],
+            )),
           ),
         ),
       ],
@@ -138,51 +187,82 @@ class NewEventPage extends StatelessWidget {
   }
 
   Widget _buildPhotoUpload() {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FA),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.stockColor, width: 1),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: 2.h),
-            child: Icon(
-              Icons.filter_center_focus_outlined,
-              color: AppColors.textColor,
-              size: 24.w,
-            ),
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Upload / Capture Photo',
-                  style: GoogleFonts.inter(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF6B9BF8),
+    return InkWell(
+      onTap: controller.pickImage,
+      child: Obx(() => Container(
+        padding: EdgeInsets.all(16.w),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF7F8FA),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: AppColors.stockColor, width: 1),
+        ),
+        child: controller.selectedImagePath.isNotEmpty || controller.existingImageUrl != null ? Column(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8.r),
+              child: controller.selectedImagePath.isNotEmpty
+                ? Image.file(
+                    File(controller.selectedImagePath.value),
+                    height: 150.h,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  )
+                : Image.network(
+                    controller.existingImageUrl!,
+                    height: 150.h,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 150.h,
+                      color: Colors.grey[300],
+                      child: const Center(child: Icon(Icons.broken_image)),
+                    ),
                   ),
-                ),
-                SizedBox(height: 6.h),
-                Text(
-                  'Helps with visual Identification\nduring audits',
-                  style: GoogleFonts.inter(
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.boxTextColor,
-                  ),
-                ),
-              ],
             ),
-          ),
-        ],
-      ),
+            SizedBox(height: 8.h),
+            Text('Change Photo', style: GoogleFonts.inter(color: Colors.blue, fontSize: 12.sp)),
+          ],
+        ) : Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(top: 2.h),
+              child: Icon(
+                Icons.filter_center_focus_outlined,
+                color: AppColors.textColor,
+                size: 24.w,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Upload / Capture Photo',
+                    style: GoogleFonts.inter(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF6B9BF8),
+                    ),
+                  ),
+                  SizedBox(height: 6.h),
+                  Text(
+                    'Helps with visual Identification\nduring audits',
+                    style: GoogleFonts.inter(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.boxTextColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      )),
     );
   }
 }
+

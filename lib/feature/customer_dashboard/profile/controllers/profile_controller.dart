@@ -87,13 +87,8 @@ class ProfileController extends GetxController {
       final decodedData = jsonDecode(responseBody);
 
       if (response.statusCode == 200 && decodedData['success'] == true) {
-        Get.snackbar(
-          'Success',
-          'Profile updated successfully',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-        fetchProfile();
+        EasyLoading.showSuccess('Profile updated successfully');
+        await fetchProfile();
         selectedImagePath.value = ''; // Reset after successful update
         Get.back();
       } else {

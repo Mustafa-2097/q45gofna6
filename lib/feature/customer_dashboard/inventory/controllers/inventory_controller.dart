@@ -20,12 +20,21 @@ class InventoryController extends GetxController {
   final totalStock = 0.obs;
   final totalCost = 0.0.obs;
 
+  // Pagination state
+  var currentPage = 1;
+  final limit = 10;
+  var isMoreLoading = false.obs;
+  var hasMore = true.obs;
+
   @override
   void onInit() {
     super.onInit();
     fetchCategories();
     fetchInventoryItems();
     fetchInventoryStatistics();
+    
+    // Setup debounce for search API call
+    debounce(searchQuery, (_) => fetchInventoryItems(), time: const Duration(milliseconds: 500));
   }
 
   Future<void> fetchCategories() async {
@@ -66,6 +75,7 @@ class InventoryController extends GetxController {
 
   void selectCategory(String category) {
     selectedCategory.value = category;
+    fetchInventoryItems(); // Fetch filtered inventory from API
   }
 
   void updateSearch(String query) {
@@ -111,15 +121,102 @@ class InventoryController extends GetxController {
     }
   }
 
-  Future<void> fetchInventoryItems() async {
-    isInventoryLoading.value = true;
+  Future<bool> updateCategory(String id, String newName) async {
+    final cleanName = newName.trim();
+    if (cleanName.isEmpty) return false;
+
+    EasyLoading.show(status: 'Updating category...');
     try {
-      final response = await ApiService.getInventoryItems();
+      final response = await ApiService.updateCategory(id: id, name: cleanName);
+      final data = jsonDecode(response.body);
+
+      if ((response.statusCode == 200 || response.statusCode == 201) && data['success'] == true) {
+        EasyLoading.dismiss();
+        EasyLoading.showSuccess(data['message'] ?? 'Category updated successfully');
+        fetchCategories(); // Refresh all
+        return true;
+      } else {
+        EasyLoading.dismiss();
+        EasyLoading.showError(data['message'] ?? 'Failed to update category');
+        return false;
+      }
+    } catch (e) {
+      EasyLoading.dismiss();
+      EasyLoading.showError('Something went wrong. Please try again later.');
+      return false;
+    }
+  }
+
+  Future<bool> deleteCategory(String id) async {
+    EasyLoading.show(status: 'Deleting category...');
+    try {
+      final response = await ApiService.deleteCategory(id);
+      final data = jsonDecode(response.body);
+
+      if ((response.statusCode == 200 || response.statusCode == 201) && data['success'] == true) {
+        EasyLoading.dismiss();
+        EasyLoading.showSuccess(data['message'] ?? 'Category deleted successfully');
+        fetchCategories(); // Refresh all
+        return true;
+      } else {
+        EasyLoading.dismiss();
+        EasyLoading.showError(data['message'] ?? 'Failed to delete category');
+        return false;
+      }
+    } catch (e) {
+      EasyLoading.dismiss();
+      EasyLoading.showError('Something went wrong. Please try again later.');
+      return false;
+    }
+  }
+
+  Future<void> fetchInventoryItems({bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (isMoreLoading.value || !hasMore.value) return;
+      isMoreLoading.value = true;
+    } else {
+      isInventoryLoading.value = true;
+      currentPage = 1;
+      hasMore.value = true;
+      inventoryItems.clear(); // Clear existing items to show loader and avoid stale UI
+    }
+
+    try {
+      String? categoryId;
+      if (selectedCategory.value != 'All') {
+        categoryId = categoryMap[selectedCategory.value];
+      }
+
+      final response = await ApiService.getInventoryItems(
+        search: searchQuery.value,
+        categoryId: categoryId,
+        page: currentPage,
+        limit: limit,
+      );
       final data = jsonDecode(response.body);
 
       if ((response.statusCode == 200 || response.statusCode == 201) && data['success'] == true) {
         final List<dynamic> items = data['data'] ?? [];
-        inventoryItems.value = items.map((item) => InventoryItem.fromJson(item)).toList();
+        final newItems = items.map((item) => InventoryItem.fromJson(item)).toList();
+        
+        if (isLoadMore) {
+          inventoryItems.addAll(newItems);
+        } else {
+          inventoryItems.assignAll(newItems);
+        }
+
+        // Check if there's more data
+        final pagination = data['pagination'];
+        if (pagination != null) {
+          final totalPages = pagination['totalPage'] ?? 1;
+          hasMore.value = currentPage < totalPages;
+          if (hasMore.value) {
+            currentPage++;
+          }
+        } else {
+          hasMore.value = newItems.length == limit;
+          if (hasMore.value) currentPage++;
+        }
       } else {
         EasyLoading.showError(data['message'] ?? 'Failed to load inventory');
       }
@@ -127,6 +224,7 @@ class InventoryController extends GetxController {
       EasyLoading.showError('Something went wrong loading inventory');
     } finally {
       isInventoryLoading.value = false;
+      isMoreLoading.value = false;
     }
   }
 

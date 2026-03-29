@@ -137,7 +137,7 @@ class _AddInventoryItemPageState extends State<AddInventoryItemPage> {
           ),
           SizedBox(height: 16.h),
           _buildInputField(
-            label: 'Item name*',
+            label: 'Item Name*',
             hintText: 'Camera',
             controller: nameController,
           ),
@@ -159,7 +159,7 @@ class _AddInventoryItemPageState extends State<AddInventoryItemPage> {
           _buildCategoryDropdown(controller),
           SizedBox(height: 24.h),
           Text(
-            'Item Photo',
+            'Item Photo*',
             style: GoogleFonts.inter(
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,

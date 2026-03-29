@@ -10,6 +10,7 @@ class HomeController extends GetxController {
   var isLoading = false.obs;
   var statistics = Rxn<StatisticsModel>();
   var userName = 'User'.obs;
+  var userAvatar = ''.obs;
 
   @override
   void onInit() {
@@ -32,7 +33,24 @@ class HomeController extends GetxController {
 
       final profileResponse = jsonDecode(results[1].body);
       if ((results[1].statusCode == 200 || results[1].statusCode == 201) && profileResponse['success'] == true) {
-        userName.value = profileResponse['data']['profile']['name'] ?? 'User';
+        final profileData = profileResponse['data']['profile'];
+        userName.value = profileData['name'] ?? 'User';
+        
+        // Handle avatar URL cleaning
+        String avatar = profileData['avatar'] ?? '';
+        if (avatar.isNotEmpty) {
+          if (avatar.contains('localhost')) {
+            avatar = avatar.replaceFirst('localhost:5000', '206.162.244.189:5005');
+          } else if (avatar.contains('127.0.0.1')) {
+            avatar = avatar.replaceFirst('127.0.0.1:5000', '206.162.244.189:5005');
+          }
+          if (!avatar.startsWith('http')) {
+            avatar = avatar.startsWith('/') 
+              ? 'http://206.162.244.189:5005$avatar' 
+              : 'http://206.162.244.189:5005/$avatar';
+          }
+        }
+        userAvatar.value = avatar;
       }
     } catch (e) {
       debugPrint('Failed to load home data: $e');

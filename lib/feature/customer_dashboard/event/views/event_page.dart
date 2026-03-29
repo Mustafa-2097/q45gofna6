@@ -4,18 +4,51 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constant/app_colors.dart';
 import '../controllers/event_controller.dart';
+import 'event_details_page.dart';
 
-class EventPage extends StatelessWidget {
+class EventPage extends StatefulWidget {
   EventPage({super.key});
-  final controller = Get.put(EventController());
+
+  @override
+  State<EventPage> createState() => _EventPageState();
+}
+
+class _EventPageState extends State<EventPage> {
+  final controller = Get.find<EventController>();
+  final ScrollController scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+      controller.fetchEvents(isLoadMore: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    scrollController.removeListener(_onScroll);
+    scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await controller.fetchEvents();
+          },
+          child: SingleChildScrollView(
+            controller: scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -38,7 +71,7 @@ class EventPage extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 
@@ -240,7 +273,10 @@ class EventPage extends StatelessWidget {
           final event = entry.value;
           return Padding(
             padding: EdgeInsets.only(bottom: i < events.length - 1 ? 16.h : 0),
-            child: _buildEventCard(event: event),
+            child: InkWell(
+              onTap: () => Get.to(() => EventDetailsPage(event: event)),
+              child: _buildEventCard(event: event),
+            ),
           );
         }).toList(),
       );

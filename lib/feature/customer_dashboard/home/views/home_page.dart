@@ -6,6 +6,7 @@ import 'package:q45gofna6/core/constant/app_text_styles.dart';
 import '../../../../core/constant/app_colors.dart';
 import '../controllers/home_controller.dart';
 import '../../event/views/new_event_page.dart';
+import '../../event/controllers/event_controller.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
@@ -24,7 +25,7 @@ class HomePage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Obx(() => _buildHeader(context, controller.userName.value)),
+                Obx(() => _buildHeader(context, controller.userName.value, controller.userAvatar.value)),
                 SizedBox(height: 24.h),
                 _buildActionCards(),
                 SizedBox(height: 16.h),
@@ -61,7 +62,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, String userName) {
+  Widget _buildHeader(BuildContext context, String userName, String userAvatar) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -86,7 +87,17 @@ class HomePage extends StatelessWidget {
             color: AppColors.stockColor,
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.person_outline, color: AppColors.buttonColor),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20.r),
+            child: userAvatar.isNotEmpty
+                ? Image.network(
+                    userAvatar,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.person_outline, color: AppColors.buttonColor),
+                  )
+                : const Icon(Icons.person_outline, color: AppColors.buttonColor),
+          ),
         ),
       ],
     );
@@ -97,7 +108,10 @@ class HomePage extends StatelessWidget {
       children: [
         Expanded(
           child: InkWell(
-            onTap: () => Get.to(() => const NewEventPage()),
+            onTap: () {
+              Get.find<EventController>().resetForm();
+              Get.to(() => NewEventPage());
+            },
             child: Container(
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(
