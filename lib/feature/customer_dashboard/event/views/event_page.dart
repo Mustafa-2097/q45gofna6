@@ -3,8 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constant/app_colors.dart';
+import '../../../../core/constant/widgets/common_image.dart';
 import '../controllers/event_controller.dart';
 import 'event_details_page.dart';
+import '../models/event_model.dart';
 
 class EventPage extends StatefulWidget {
   EventPage({super.key});
@@ -314,19 +316,11 @@ class _EventPageState extends State<EventPage> {
           // Image Header
           Stack(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
-                child: Image.network(
-                  event.imageUrl,
-                  height: 160.h,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    height: 160.h,
-                    color: Colors.grey[300],
-                    child: const Center(child: Icon(Icons.broken_image)),
-                  ),
-                ),
+              CommonImage(
+                imageUrl: event.imageUrl,
+                height: 160.h,
+                width: double.infinity,
+                borderRadius: 16.r,
               ),
               Positioned(
                 top: 12.h,
@@ -374,11 +368,14 @@ class _EventPageState extends State<EventPage> {
                       color: AppColors.boxTextColor,
                     ),
                     SizedBox(width: 4.w),
-                    Text(
-                      event.date,
-                      style: GoogleFonts.inter(
-                        fontSize: 12.sp,
-                        color: AppColors.boxTextColor,
+                    Flexible(
+                      child: Text(
+                        event.date.contains('T') ? event.date.split('T')[0] : event.date,
+                        style: GoogleFonts.inter(
+                          fontSize: 12.sp,
+                          color: AppColors.boxTextColor,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Padding(
@@ -414,12 +411,15 @@ class _EventPageState extends State<EventPage> {
                         ),
                       ),
                     ),
-                    Text(
-                      event.price,
-                      style: GoogleFonts.inter(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF3876D6),
+                    Flexible(
+                      child: Text(
+                        event.price,
+                        style: GoogleFonts.inter(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF3876D6),
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

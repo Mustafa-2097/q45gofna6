@@ -80,9 +80,26 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
                 text: controller.editEventId != null ? "Update Event" : "Create Event",
                 onPressed: () async {
                   if (controller.selectedItems.isEmpty) {
-                    EasyLoading.showError('Please select at least one item');
-                    return;
+                    if (controller.editEventId != null) {
+                      // Check if other text fields or status have changed even if items are empty
+                      // If any main field changed, we still want to call update
+                      final hasDetailsChanged = controller.nameController.text.isNotEmpty || 
+                                              controller.dateController.text.isNotEmpty || 
+                                              controller.selectedImagePath.isNotEmpty;
+                      
+                      if (!hasDetailsChanged) {
+                        EasyLoading.showInfo('No changes made');
+                        Get.back(); // Go back from Select items
+                        Get.back(); // Go back from Edit event page to details
+                        return;
+                      }
+                      // If details changed but items empty, the controller's createEvent will handle validation/API
+                    } else {
+                      EasyLoading.showError('Please select at least one item');
+                      return;
+                    }
                   }
+                  
                   final event = await controller.createEvent();
                   if (event != null) {
                     Get.off(() => EventDetailsPage(event: event));

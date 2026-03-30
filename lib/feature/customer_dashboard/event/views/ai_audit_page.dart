@@ -4,12 +4,32 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constant/app_colors.dart';
+import '../../../../core/constant/widgets/common_image.dart';
+import '../controllers/event_controller.dart';
 import 'capture_before_image_page.dart';
 import 'capture_after_image_page.dart';
 import 'all_missing_item_page.dart';
+import '../models/event_model.dart';
 
-class AiAuditPage extends StatelessWidget {
-  const AiAuditPage({super.key});
+class AiAuditPage extends StatefulWidget {
+  final String eventId;
+  const AiAuditPage({super.key, required this.eventId});
+
+  @override
+  State<AiAuditPage> createState() => _AiAuditPageState();
+}
+
+class _AiAuditPageState extends State<AiAuditPage> {
+  final EventController controller = Get.find<EventController>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Refresh audits when entering the page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchEventAudits(widget.eventId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,16 +40,22 @@ class AiAuditPage extends StatelessWidget {
           children: [
             _buildHeader(),
             Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: Column(
-                  children: [
-                    SizedBox(height: 16.h),
-                    _buildAuditResults(),
-                    SizedBox(height: 24.h),
-                    _buildAuditProgress(),
-                    SizedBox(height: 24.h),
-                  ],
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await controller.fetchEventAudits(widget.eventId);
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 16.h),
+                      _buildAuditResults(),
+                      SizedBox(height: 24.h),
+                      _buildAuditProgress(),
+                      SizedBox(height: 24.h),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -128,204 +154,220 @@ class AiAuditPage extends StatelessWidget {
             ],
           ),
           SizedBox(height: 20.h),
-          // Stats
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 20.h),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF2FBF5),
-                    borderRadius: BorderRadius.circular(16.r),
-                    border: Border.all(color: const Color(0xFFE8F3EA)),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        '3',
-                        style: GoogleFonts.inter(
-                          fontSize: 28.sp,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF4CAF50),
-                        ),
-                      ),
-                      Text(
-                        'Items Found',
-                        style: GoogleFonts.inter(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0xFF4CAF50),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 20.h),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEF2F2),
-                    borderRadius: BorderRadius.circular(16.r),
-                    border: Border.all(color: const Color(0xFFFEE2E2)),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        '1',
-                        style: GoogleFonts.inter(
-                          fontSize: 28.sp,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.redColor,
-                        ),
-                      ),
-                      Text(
-                        'Missing',
-                        style: GoogleFonts.inter(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.redColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 20.h),
-          // Missing Items Card
-          Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF2F2),
-              borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(color: const Color(0xFFFEE2E2)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Stats — driven by real report data
+          Obx(() {
+            final report = controller.auditReport.value;
+            final foundCount = report?.found ?? 0;
+            final missingCount = report?.missing ?? 0;
+            return Row(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 20.h),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF2FBF5),
+                      borderRadius: BorderRadius.circular(16.r),
+                      border: Border.all(color: const Color(0xFFE8F3EA)),
+                    ),
+                    child: Column(
                       children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: AppColors.redColor,
-                          size: 20.w,
-                        ),
-                        SizedBox(width: 8.w),
                         Text(
-                          'Missing Items',
+                          '$foundCount',
                           style: GoogleFonts.inter(
-                            fontSize: 16.sp,
+                            fontSize: 28.sp,
                             fontWeight: FontWeight.w700,
+                            color: const Color(0xFF4CAF50),
+                          ),
+                        ),
+                        Text(
+                          'Items Found',
+                          style: GoogleFonts.inter(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF4CAF50),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 20.h),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(16.r),
+                      border: Border.all(color: const Color(0xFFFEE2E2)),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          '$missingCount',
+                          style: GoogleFonts.inter(
+                            fontSize: 28.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.redColor,
+                          ),
+                        ),
+                        Text(
+                          'Missing',
+                          style: GoogleFonts.inter(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w500,
                             color: AppColors.redColor,
                           ),
                         ),
                       ],
                     ),
-                    GestureDetector(
-                      onTap: () => Get.to(() => const AllMissingItemPage()),
-                      child: Text(
-                        'See all',
-                        style: GoogleFonts.inter(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryColor,
-                          decoration: TextDecoration.underline,
-                          decorationColor: AppColors.primaryColor
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16.h),
-                Container(
-                  padding: EdgeInsets.all(12.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16.r),
                   ),
-                  child: Row(
+                ),
+              ],
+            );
+          }),
+          // Missing Items Card — only shown when report has actual missing items
+          Obx(() {
+            final report = controller.auditReport.value;
+            if (report == null || report.missings.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            final firstMissing = report.missings.first;
+            final totalLoss = report.totalLoss;
+
+            return Column(
+              children: [
+                SizedBox(height: 20.h),
+                Container(
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(20.r),
+                    border: Border.all(color: const Color(0xFFFEE2E2)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12.r),
-                        child: Image.network(
-                          'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
-                          width: 50.w,
-                          height: 50.w,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Wireless Microphone',
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                color: AppColors.redColor,
+                                size: 20.w,
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'Missing Items',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.redColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          GestureDetector(
+                            onTap: () => Get.to(
+                              () => AllMissingItemPage(eventId: widget.eventId),
+                            ),
+                            child: Text(
+                              'See all',
                               style: GoogleFonts.inter(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textColor,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryColor,
+                                decoration: TextDecoration.underline,
+                                decorationColor: AppColors.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16.h),
+                      Container(
+                        padding: EdgeInsets.all(12.w),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16.r),
+                        ),
+                        child: Row(
+                          children: [
+                            CommonImage(
+                              imageUrl: firstMissing.image ?? '',
+                              width: 50.w,
+                              height: 50.w,
+                              borderRadius: 12.r,
+                            ),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    firstMissing.name,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textColor,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Equipment',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12.sp,
+                                      color: AppColors.boxTextColor,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             Text(
-                              'Audio',
+                              '\$${firstMissing.cost.toStringAsFixed(0)}',
                               style: GoogleFonts.inter(
-                                fontSize: 12.sp,
-                                color: AppColors.boxTextColor,
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.redColor,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      Text(
-                        '\$450',
-                        style: GoogleFonts.inter(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.redColor,
-                        ),
+                      SizedBox(height: 16.h),
+                      const Divider(color: Color(0xFFFEE2E2)),
+                      SizedBox(height: 12.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total Loss:',
+                            style: GoogleFonts.inter(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textColor,
+                            ),
+                          ),
+                          Text(
+                            '\$$totalLoss',
+                            style: GoogleFonts.inter(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.redColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: 16.h),
-                const Divider(color: Color(0xFFFEE2E2)),
-                SizedBox(height: 12.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total Loss:',
-                      style: GoogleFonts.inter(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textColor,
-                      ),
-                    ),
-                    Text(
-                      '\$450',
-                      style: GoogleFonts.inter(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.redColor,
-                      ),
-                    ),
-                  ],
-                ),
               ],
-            ),
-          ),
+            );
+          }),
         ],
       ),
     );
   }
-
 
   Widget _buildAuditProgress() {
     return Container(
@@ -356,20 +398,28 @@ class AiAuditPage extends StatelessWidget {
           SizedBox(height: 16.h),
           _buildCaptureBaselineCard(),
           SizedBox(height: 20.h),
-          _buildAuditItemCard(
-            title: 'Tittle',
-            hasAfterCapture: true,
-          ),
-          SizedBox(height: 16.h),
-          _buildAuditItemCard(
-            title: 'Tittle',
-            hasAfterCapture: false,
-          ),
-          SizedBox(height: 16.h),
-          _buildAuditItemCard(
-            title: 'Tittle',
-            hasAfterCapture: false,
-          ),
+          Obx(() {
+            if (controller.isAudisLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (controller.audits.isEmpty) {
+              return Text(
+                'No audits found.',
+                style: GoogleFonts.inter(
+                  fontSize: 14.sp,
+                  color: AppColors.boxTextColor,
+                ),
+              );
+            }
+            return Column(
+              children: controller.audits.map((audit) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 16.h),
+                  child: _buildAuditItemCard(audit: audit),
+                );
+              }).toList(),
+            );
+          }),
           SizedBox(height: 20.h),
         ],
       ),
@@ -421,7 +471,8 @@ class AiAuditPage extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () => Get.to(() => const CaptureBeforeImagePage()),
+            onPressed: () =>
+                Get.to(() => CaptureBeforeImagePage(eventId: widget.eventId)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.buttonColor,
               shape: RoundedRectangleBorder(
@@ -446,10 +497,11 @@ class AiAuditPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAuditItemCard({
-    required String title,
-    required bool hasAfterCapture,
-  }) {
+  Widget _buildAuditItemCard({required AuditModel audit}) {
+    final hasAfterCapture =
+        audit.afterImage != null && audit.afterImage!.isNotEmpty;
+    final canRunAudit = hasAfterCapture && !audit.checked;
+
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -457,17 +509,14 @@ class AiAuditPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: const Color(0xFFF1F5F9)),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title,
+            audit.title,
             style: GoogleFonts.inter(
               fontSize: 14.sp,
               fontWeight: FontWeight.w700,
@@ -480,13 +529,10 @@ class AiAuditPage extends StatelessWidget {
               Expanded(
                 child: Column(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8.r),
-                      child: Image.network(
-                        'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
-                        height: 120.h,
-                        fit: BoxFit.cover,
-                      ),
+                    CommonImage(
+                      imageUrl: audit.beforeImage ?? '',
+                      height: 120.h,
+                      borderRadius: 8.r,
                     ),
                     SizedBox(height: 8.h),
                     Text(
@@ -504,16 +550,19 @@ class AiAuditPage extends StatelessWidget {
                 child: Column(
                   children: [
                     hasAfterCapture
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8.r),
-                            child: Image.network(
-                              'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
-                              height: 120.h,
-                              fit: BoxFit.cover,
-                            ),
+                        ? CommonImage(
+                            imageUrl: audit.afterImage!,
+                            height: 120.h,
+                            borderRadius: 8.r,
                           )
                         : GestureDetector(
-                            onTap: () => Get.to(() => const CaptureAfterImagePage()),
+                            onTap: () => Get.to(
+                              () => CaptureAfterImagePage(
+                                eventId: widget.eventId,
+                                auditId: audit.id,
+                                beforeImage: audit.beforeImage,
+                              ),
+                            ),
                             child: Container(
                               height: 120.h,
                               decoration: BoxDecoration(
@@ -546,10 +595,14 @@ class AiAuditPage extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: canRunAudit
+                  ? () async {
+                      await controller.runAiAudit(audit.id, widget.eventId);
+                    }
+                  : null,
               icon: Icon(Icons.auto_awesome, size: 18.w, color: Colors.white),
               label: Text(
-                'Run AI Audit',
+                audit.checked ? 'Audit Done' : 'Run AI Audit',
                 style: GoogleFonts.inter(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
@@ -557,7 +610,8 @@ class AiAuditPage extends StatelessWidget {
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: hasAfterCapture ? AppColors.buttonColor : const Color(0xFF82B0F8),
+                backgroundColor: AppColors.buttonColor,
+                disabledBackgroundColor: const Color(0xFF82B0F8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),
                 ),
@@ -570,5 +624,4 @@ class AiAuditPage extends StatelessWidget {
       ),
     );
   }
-
 }

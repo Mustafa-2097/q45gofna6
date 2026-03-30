@@ -4,9 +4,11 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constant/app_colors.dart';
+import '../../../../core/constant/widgets/common_image.dart';
 
 class AllMissingItemPage extends StatefulWidget {
-  const AllMissingItemPage({super.key});
+  final String eventId;
+  const AllMissingItemPage({super.key, required this.eventId});
 
   @override
   State<AllMissingItemPage> createState() => _AllMissingItemPageState();
@@ -131,14 +133,11 @@ class _AllMissingItemPageState extends State<AllMissingItemPage> {
           ),
         ),
         SizedBox(width: 12.w),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12.r),
-          child: Image.network(
-            'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
-            width: 50.w,
-            height: 50.w,
-            fit: BoxFit.cover,
-          ),
+        CommonImage(
+          imageUrl: 'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
+          width: 50.w,
+          height: 50.w,
+          borderRadius: 12.r,
         ),
         SizedBox(width: 12.w),
         Expanded(

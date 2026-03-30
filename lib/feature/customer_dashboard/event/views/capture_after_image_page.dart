@@ -1,12 +1,25 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constant/app_colors.dart';
+import '../../../../core/constant/widgets/common_image.dart';
+import '../controllers/event_controller.dart';
 
 class CaptureAfterImagePage extends StatefulWidget {
-  const CaptureAfterImagePage({super.key});
+  final String eventId;
+  final String auditId;
+  final String? beforeImage;
+
+  const CaptureAfterImagePage({
+    super.key,
+    required this.eventId,
+    required this.auditId,
+    this.beforeImage,
+  });
 
   @override
   State<CaptureAfterImagePage> createState() => _CaptureAfterImagePageState();
@@ -14,6 +27,8 @@ class CaptureAfterImagePage extends StatefulWidget {
 
 class _CaptureAfterImagePageState extends State<CaptureAfterImagePage> {
   bool _isCaptured = false;
+  String? _selectedImagePath;
+  final EventController controller = Get.find<EventController>();
 
   @override
   Widget build(BuildContext context) {
@@ -23,11 +38,11 @@ class _CaptureAfterImagePageState extends State<CaptureAfterImagePage> {
         child: Column(
           children: [
             _buildHeader(),
-            SizedBox(height: 20.h),
+            SizedBox(height: 10.h),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40.w),
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Text(
-                'Take One Clear Photo Showing all event item.\nThis photo will be used for post-event\ncomparison',
+                'Take One Clear Photo Showing all event item. This photo will be used for post-event comparison',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 14.sp,
@@ -37,7 +52,32 @@ class _CaptureAfterImagePageState extends State<CaptureAfterImagePage> {
                 ),
               ),
             ),
-            SizedBox(height: 30.h),
+            SizedBox(height: 20.h),
+            if (widget.beforeImage != null && !_isCaptured)
+               Padding(
+                 padding: EdgeInsets.symmetric(horizontal: 20.w),
+                 child: Column(
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     Text(
+                       'Before Image Reference:',
+                       style: GoogleFonts.inter(
+                         fontSize: 12.sp,
+                         fontWeight: FontWeight.w600,
+                         color: AppColors.textColor,
+                       ),
+                     ),
+                     SizedBox(height: 8.h),
+                     CommonImage(
+                       imageUrl: widget.beforeImage!,
+                       height: 100.h,
+                       width: double.infinity,
+                       borderRadius: 12.r,
+                     ),
+                   ],
+                 ),
+               ),
+            SizedBox(height: 20.h),
             Expanded(
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: 20.w),
@@ -109,8 +149,15 @@ class _CaptureAfterImagePageState extends State<CaptureAfterImagePage> {
         ),
         SizedBox(height: 24.h),
         ElevatedButton.icon(
-          onPressed: () {
-            setState(() => _isCaptured = true);
+          onPressed: () async {
+            final ImagePicker picker = ImagePicker();
+            final XFile? image = await picker.pickImage(source: ImageSource.camera);
+            if (image != null) {
+              setState(() {
+                _selectedImagePath = image.path;
+                _isCaptured = true;
+              });
+            }
           },
           icon: Icon(Icons.camera_alt_outlined, size: 20.w, color: Colors.white),
           label: Text(
@@ -140,12 +187,14 @@ class _CaptureAfterImagePageState extends State<CaptureAfterImagePage> {
         Expanded(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16.r),
-            child: Image.network(
-              'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
-              width: double.infinity,
-              height: double.infinity,
-              fit: BoxFit.cover,
-            ),
+            child: _selectedImagePath != null 
+              ? Image.file(
+                  File(_selectedImagePath!),
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                )
+              : Container(color: Colors.grey[300]),
           ),
         ),
         SizedBox(height: 24.h),
@@ -177,8 +226,18 @@ class _CaptureAfterImagePageState extends State<CaptureAfterImagePage> {
             SizedBox(width: 16.w),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  Get.back();
+                onPressed: () async {
+                  if (_selectedImagePath == null) return;
+                  
+                  final success = await controller.updateAuditAfterImage(
+                    auditId: widget.auditId,
+                    imagePath: _selectedImagePath!,
+                    eventId: widget.eventId,
+                  );
+                  
+                  if (success) {
+                    Get.back();
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.buttonColor,

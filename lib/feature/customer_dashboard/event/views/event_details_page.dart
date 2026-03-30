@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:q45gofna6/core/constant/widgets/primary_button.dart';
+import '../../../../core/constant/widgets/common_image.dart';
 
 import '../../../../core/constant/app_colors.dart';
 import '../controllers/event_controller.dart';
@@ -11,10 +12,26 @@ import 'add_kit_page.dart';
 import 'capture_before_image_page.dart';
 import 'capture_after_image_page.dart';
 import 'ai_audit_page.dart';
+import '../models/event_model.dart';
 
-class EventDetailsPage extends StatelessWidget {
+class EventDetailsPage extends StatefulWidget {
   final EventModel event;
   const EventDetailsPage({super.key, required this.event});
+
+  @override
+  State<EventDetailsPage> createState() => _EventDetailsPageState();
+}
+
+class _EventDetailsPageState extends State<EventDetailsPage> {
+  final EventController controller = Get.find<EventController>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchEventAudits(widget.event.id);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,22 +42,27 @@ class EventDetailsPage extends StatelessWidget {
           children: [
             _buildHeader(),
             Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: Column(
-                  children: [
-                    SizedBox(height: 16.h),
-                    _buildSummaryCard(),
-                    SizedBox(height: 20.h),
-                    _buildAuditProgress(),
-                    SizedBox(height: 20.h),
-                    //_buildEventKit(),
-                    // edit event section method will be here
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await controller.fetchEventAudits(widget.event.id);
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 16.h),
+                      _buildSummaryCard(),
+                      SizedBox(height: 20.h),
+                      _buildAuditProgress(),
+                      SizedBox(height: 30.h),
+                      //_buildEventKit(),
+                      // edit event section method will be here
 
-                    SizedBox(height: 20.h),
-                    PrimaryButton(text: "Mark as Complete", onPressed: () {}),
-                    SizedBox(height: 20.h),
-                  ],
+                      PrimaryButton(text: "Mark as Complete", onPressed: () {}),
+                      SizedBox(height: 30.h),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -73,7 +95,7 @@ class EventDetailsPage extends StatelessWidget {
           SizedBox(width: 16.w),
           Expanded(
             child: Text(
-              event.title,
+              widget.event.title,
               style: GoogleFonts.inter(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.w700,
@@ -84,9 +106,8 @@ class EventDetailsPage extends StatelessWidget {
             ),
           ),
           InkWell(
-            onTap: () {
-              final controller = Get.find<EventController>();
-              controller.setEditEvent(event);
+            onTap: () async {
+              await controller.setEditEvent(widget.event);
               Get.to(() => NewEventPage());
             },
             child: Container(
@@ -149,7 +170,7 @@ class EventDetailsPage extends StatelessWidget {
                   ),
                   SizedBox(height: 4.h),
                   Text(
-                    event.date.split('T')[0],
+                    widget.event.date.split('T')[0],
                     style: GoogleFonts.inter(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w700,
@@ -180,7 +201,7 @@ class EventDetailsPage extends StatelessWidget {
                   ),
                   SizedBox(height: 4.h),
                   Text(
-                    event.items,
+                    widget.event.items,
                     style: GoogleFonts.inter(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w700,
@@ -212,7 +233,7 @@ class EventDetailsPage extends StatelessWidget {
           ),
           SizedBox(height: 4.h),
           Text(
-            event.price,
+            widget.event.price,
             style: GoogleFonts.inter(
               fontSize: 20.sp,
               fontWeight: FontWeight.w700,
@@ -246,20 +267,39 @@ class EventDetailsPage extends StatelessWidget {
           SizedBox(height: 16.h),
           _buildCaptureBaselineCard(),
           SizedBox(height: 20.h),
-          _buildAuditItemCard(
-            title: 'Tittle',
-            hasAfterCapture: true,
-          ),
-          SizedBox(height: 16.h),
-          _buildAuditItemCard(
-            title: 'Tittle',
-            hasAfterCapture: false,
-          ),
+          Obx(() {
+            if (controller.isAudisLoading.value) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 20.h),
+                child: const Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (controller.audits.isEmpty) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 10.h),
+                child: Text(
+                  'No audits found for this event.',
+                  style: GoogleFonts.inter(
+                    fontSize: 14.sp,
+                    color: AppColors.boxTextColor,
+                  ),
+                ),
+              );
+            }
+            return Column(
+              children: controller.audits.map((audit) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 16.h),
+                  child: _buildAuditItemCard(audit: audit),
+                );
+              }).toList(),
+            );
+          }),
           SizedBox(height: 20.h),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => Get.to(() => const AiAuditPage()),
+              onPressed: () => Get.to(() => AiAuditPage(eventId: widget.event.id)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.buttonColor,
                 shape: RoundedRectangleBorder(
@@ -328,7 +368,7 @@ class EventDetailsPage extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () => Get.to(() => const CaptureBeforeImagePage()),
+            onPressed: () => Get.to(() => CaptureBeforeImagePage(eventId: widget.event.id)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.buttonColor,
               shape: RoundedRectangleBorder(
@@ -353,10 +393,10 @@ class EventDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAuditItemCard({
-    required String title,
-    required bool hasAfterCapture,
-  }) {
+  Widget _buildAuditItemCard({required AuditModel audit}) {
+    final hasAfterCapture = audit.afterImage != null && audit.afterImage!.isNotEmpty;
+    final canRunAudit = hasAfterCapture && !audit.checked;
+    
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -374,7 +414,7 @@ class EventDetailsPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title,
+            audit.title,
             style: GoogleFonts.inter(
               fontSize: 14.sp,
               fontWeight: FontWeight.w700,
@@ -387,13 +427,10 @@ class EventDetailsPage extends StatelessWidget {
               Expanded(
                 child: Column(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8.r),
-                      child: Image.network(
-                        'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
-                        height: 120.h,
-                        fit: BoxFit.cover,
-                      ),
+                    CommonImage(
+                      imageUrl: audit.beforeImage ?? '',
+                      height: 120.h,
+                      borderRadius: 8.r,
                     ),
                     SizedBox(height: 8.h),
                     Text(
@@ -411,16 +448,17 @@ class EventDetailsPage extends StatelessWidget {
                 child: Column(
                   children: [
                     hasAfterCapture
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8.r),
-                            child: Image.network(
-                              'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?q=80&w=800&auto=format&fit=crop',
-                              height: 120.h,
-                              fit: BoxFit.cover,
-                            ),
+                        ? CommonImage(
+                            imageUrl: audit.afterImage!,
+                            height: 120.h,
+                            borderRadius: 8.r,
                           )
                         : GestureDetector(
-                            onTap: () => Get.to(() => const CaptureAfterImagePage()),
+                            onTap: () => Get.to(() => CaptureAfterImagePage(
+                              eventId: widget.event.id,
+                              auditId: audit.id,
+                              beforeImage: audit.beforeImage,
+                            )),
                             child: Container(
                               height: 120.h,
                               decoration: BoxDecoration(
@@ -453,10 +491,14 @@ class EventDetailsPage extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => Get.to(() => const AiAuditPage()),
+              onPressed: canRunAudit
+                  ? () async {
+                      await controller.runAiAudit(audit.id, widget.event.id);
+                    }
+                  : null,
               icon: Icon(Icons.auto_awesome, size: 18.w, color: Colors.white),
               label: Text(
-                'Run AI Audit',
+                audit.checked ? 'Audit Done' : 'Run AI Audit',
                 style: GoogleFonts.inter(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
@@ -464,7 +506,8 @@ class EventDetailsPage extends StatelessWidget {
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: hasAfterCapture ? AppColors.buttonColor : const Color(0xFF82B0F8),
+                backgroundColor: AppColors.buttonColor,
+                disabledBackgroundColor: const Color(0xFF82B0F8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),
                 ),
@@ -567,15 +610,10 @@ class EventDetailsPage extends StatelessWidget {
                 color: const Color(0xFFE8F3DB),
                 borderRadius: BorderRadius.circular(12.r),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12.r),
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
+                child: CommonImage(
+                  imageUrl: imageUrl,
+                  borderRadius: 12.r,
                 ),
-              ),
             ),
           ),
           Padding(

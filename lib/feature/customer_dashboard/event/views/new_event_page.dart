@@ -187,81 +187,92 @@ class NewEventPage extends StatelessWidget {
   }
 
   Widget _buildPhotoUpload() {
-    return InkWell(
+    return GestureDetector(
       onTap: controller.pickImage,
-      child: Obx(() => Container(
-        padding: EdgeInsets.all(16.w),
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF7F8FA),
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: AppColors.stockColor, width: 1),
-        ),
-        child: controller.selectedImagePath.isNotEmpty || controller.existingImageUrl != null ? Column(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8.r),
-              child: controller.selectedImagePath.isNotEmpty
-                ? Image.file(
-                    File(controller.selectedImagePath.value),
-                    height: 150.h,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  )
-                : Image.network(
-                    controller.existingImageUrl!,
-                    height: 150.h,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 150.h,
-                      color: Colors.grey[300],
-                      child: const Center(child: Icon(Icons.broken_image)),
-                    ),
-                  ),
-            ),
-            SizedBox(height: 8.h),
-            Text('Change Photo', style: GoogleFonts.inter(color: Colors.blue, fontSize: 12.sp)),
-          ],
-        ) : Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(top: 2.h),
-              child: Icon(
-                Icons.filter_center_focus_outlined,
-                color: AppColors.textColor,
-                size: 24.w,
-              ),
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: Obx(() {
+        final hasNewImage = controller.selectedImagePath.isNotEmpty;
+        final existingUrl = controller.existingImageUrl;
+        final hasAnyImage = hasNewImage || (existingUrl != null && existingUrl.isNotEmpty);
+        
+        return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF7F8FA),
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: AppColors.stockColor),
+          ),
+          padding: hasAnyImage ? EdgeInsets.symmetric(vertical: 16.h) : EdgeInsets.all(16.w),
+          child: hasAnyImage 
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'Upload / Capture Photo',
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF6B9BF8),
+                  Container(
+                    width: 160.w,
+                    height: 140.h,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.r),
+                      image: hasNewImage
+                          ? DecorationImage(
+                              image: FileImage(File(controller.selectedImagePath.value)),
+                              fit: BoxFit.cover,
+                            )
+                          : DecorationImage(
+                              image: NetworkImage(existingUrl!),
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
-                  SizedBox(height: 6.h),
-                  Text(
-                    'Helps with visual Identification\nduring audits',
-                    style: GoogleFonts.inter(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.boxTextColor,
+                  SizedBox(height: 12.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.camera_alt_outlined, color: const Color(0xFF6B9BF8), size: 18.w),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'Change Photo',
+                        style: GoogleFonts.inter(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF6B9BF8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  Icon(Icons.center_focus_weak_outlined, color: AppColors.textColor, size: 24.w),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Upload / Capture Photo',
+                          style: GoogleFonts.inter(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF6B9BF8),
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          'Helps with visual Identification during audits',
+                          style: GoogleFonts.inter(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.boxTextColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-      )),
+        );
+      }),
     );
   }
 }

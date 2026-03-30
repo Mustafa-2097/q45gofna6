@@ -343,73 +343,82 @@ class _AddInventoryItemPageState extends State<AddInventoryItemPage> {
         }
       },
       child: Container(
-        padding: EdgeInsets.all(16.w),
+        width: double.infinity,
         decoration: BoxDecoration(
           color: const Color(0xFFF7F8FA),
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: AppColors.stockColor, width: 1),
-          image: hasNewImage
-              ? DecorationImage(
-                  image: FileImage(File(selectedImage!.path)),
-                  fit: BoxFit.cover,
-                  colorFilter: ColorFilter.mode(
-                    Colors.black.withOpacity(0.4),
-                    BlendMode.darken,
-                  ),
-                )
-              : hasExistingImage
-                  ? DecorationImage(
-                      image: NetworkImage(existingImageUrl),
-                      fit: BoxFit.cover,
-                      colorFilter: ColorFilter.mode(
-                        Colors.black.withOpacity(0.4),
-                        BlendMode.darken,
-                      ),
-                    )
-                  : null,
+          border: Border.all(color: AppColors.stockColor),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(top: 2.h),
-              child: Icon(
-                hasAnyImage ? Icons.image : Icons.filter_center_focus_outlined,
-                color: hasAnyImage ? Colors.white : AppColors.textColor,
-                size: 24.w,
-              ),
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        padding: hasAnyImage ? EdgeInsets.symmetric(vertical: 16.h) : EdgeInsets.all(16.w),
+        child: hasAnyImage
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    hasAnyImage ? 'Change Photo' : 'Upload / Capture Photo',
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
-                      color: hasAnyImage
-                          ? Colors.white
-                          : const Color(0xFF6B9BF8),
+                  Container(
+                    width: 160.w,
+                    height: 140.h,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.r),
+                      image: hasNewImage
+                          ? DecorationImage(
+                              image: FileImage(File(selectedImage!.path)),
+                              fit: BoxFit.cover,
+                            )
+                          : DecorationImage(
+                              image: NetworkImage(existingImageUrl!),
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
-                  SizedBox(height: 6.h),
-                  Text(
-                    'Helps with visual Identification\nduring audits',
-                    style: GoogleFonts.inter(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w400,
-                      color: hasAnyImage
-                          ? Colors.white.withOpacity(0.9)
-                          : AppColors.boxTextColor,
+                  SizedBox(height: 12.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.camera_alt_outlined, color: const Color(0xFF6B9BF8), size: 18.w),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'Change Photo',
+                        style: GoogleFonts.inter(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF6B9BF8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  Icon(Icons.center_focus_weak_outlined, color: AppColors.textColor, size: 24.w),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Upload / Capture Photo',
+                          style: GoogleFonts.inter(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF6B9BF8),
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          'Helps with visual Identification during audits',
+                          style: GoogleFonts.inter(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.boxTextColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

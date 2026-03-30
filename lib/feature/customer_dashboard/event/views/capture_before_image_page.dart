@@ -1,12 +1,17 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:q45gofna6/core/network/api_service.dart';
 
 import '../../../../core/constant/app_colors.dart';
+import '../controllers/event_controller.dart';
 
 class CaptureBeforeImagePage extends StatefulWidget {
-  const CaptureBeforeImagePage({super.key});
+  final String eventId;
+  const CaptureBeforeImagePage({super.key, required this.eventId});
 
   @override
   State<CaptureBeforeImagePage> createState() => _CaptureBeforeImagePageState();
@@ -14,11 +19,16 @@ class CaptureBeforeImagePage extends StatefulWidget {
 
 class _CaptureBeforeImagePageState extends State<CaptureBeforeImagePage> {
   bool _isCaptured = false;
+  String? _selectedImagePath;
+  final _titleController = TextEditingController();
 
   void _showTittleDialog() {
+    bool isDialogLoading = false;
     Get.dialog(
-      Dialog(
-        backgroundColor: Colors.white,
+      StatefulBuilder(
+        builder: (context, setStateDialog) {
+          return Dialog(
+            backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.r),
         ),
@@ -38,8 +48,9 @@ class _CaptureBeforeImagePageState extends State<CaptureBeforeImagePage> {
               ),
               SizedBox(height: 12.h),
               TextField(
+                controller: _titleController,
                 decoration: InputDecoration(
-                  hintText: 'Enter title...',
+                  hintText: 'Enter title (e.g., Table 1)...',
                   hintStyle: GoogleFonts.inter(
                     fontSize: 14.sp,
                     color: Colors.grey,
@@ -62,9 +73,41 @@ class _CaptureBeforeImagePageState extends State<CaptureBeforeImagePage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Get.back(); // Close dialog
-                    Get.back(); // Navigate back to source page
+                  onPressed: isDialogLoading ? null : () async {
+                    if (_titleController.text.trim().isEmpty) {
+                      Get.snackbar('Error', 'Please enter a title');
+                      return;
+                    }
+
+                    setStateDialog(() => isDialogLoading = true);
+                    try {
+                      final response = await ApiService.createAudit(
+                        eventId: widget.eventId,
+                        data: {'title': _titleController.text.trim()},
+                        beforeImagePath: _selectedImagePath,
+                      );
+
+                      if (response.statusCode == 201 || response.statusCode == 200) {
+                        Get.back(); // Close dialog
+                        
+                        // Re-fetch audits immediately
+                        if (Get.isRegistered<EventController>()) {
+                          Get.find<EventController>().fetchEventAudits(widget.eventId);
+                        }
+
+                        Get.back(); // Navigate back to Event Details
+                        Get.snackbar('Success', 'Baseline captured successfully');
+                      } else {
+                        Get.snackbar('Error', 'Failed to capture baseline: ${response.statusCode}');
+                      }
+                    } catch (e) {
+                      Get.snackbar('Error', 'Something went wrong');
+                      debugPrint('Audit Error: $e');
+                    } finally {
+                      if (mounted) {
+                        setStateDialog(() => isDialogLoading = false);
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.buttonColor,
@@ -74,23 +117,27 @@ class _CaptureBeforeImagePageState extends State<CaptureBeforeImagePage> {
                     padding: EdgeInsets.symmetric(vertical: 14.h),
                     elevation: 0,
                   ),
-                  child: Text(
-                    'Done',
-                    style: GoogleFonts.inter(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: isDialogLoading 
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Text(
+                        'Done',
+                        style: GoogleFonts.inter(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
                 ),
               ),
             ],
           ),
         ),
-      ),
-      barrierColor: Colors.black.withOpacity(0.3),
-    );
-  }
+      );
+      },
+    ),
+    barrierColor: Colors.black.withOpacity(0.3),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -100,11 +147,11 @@ class _CaptureBeforeImagePageState extends State<CaptureBeforeImagePage> {
         child: Column(
           children: [
             _buildHeader(),
-            SizedBox(height: 20.h),
+            SizedBox(height: 10.h),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40.w),
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Text(
-                'Take One Clear Photo Showing all event item.\nThis photo will be used for post-event\ncomparison',
+                'Take One Clear Photo Showing all event item. This photo will be used for post-event comparison',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 14.sp,
@@ -186,8 +233,15 @@ class _CaptureBeforeImagePageState extends State<CaptureBeforeImagePage> {
         ),
         SizedBox(height: 24.h),
         ElevatedButton.icon(
-          onPressed: () {
-            setState(() => _isCaptured = true);
+          onPressed: () async {
+            final ImagePicker picker = ImagePicker();
+            final XFile? image = await picker.pickImage(source: ImageSource.camera);
+            if (image != null) {
+              setState(() {
+                _selectedImagePath = image.path;
+                _isCaptured = true;
+              });
+            }
           },
           icon: Icon(Icons.camera_alt_outlined, size: 20.w, color: Colors.white),
           label: Text(
@@ -217,12 +271,14 @@ class _CaptureBeforeImagePageState extends State<CaptureBeforeImagePage> {
         Expanded(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16.r),
-            child: Image.network(
-              'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=800&auto=format&fit=crop',
-              width: double.infinity,
-              height: double.infinity,
-              fit: BoxFit.cover,
-            ),
+            child: _selectedImagePath != null 
+              ? Image.file(
+                  File(_selectedImagePath!),
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                )
+              : Container(color: Colors.grey[300]),
           ),
         ),
         SizedBox(height: 24.h),
