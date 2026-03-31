@@ -31,8 +31,8 @@ class NewEventPage extends StatelessWidget {
           ),
           SizedBox(height: 20.h),
           _buildInput(
-            label: 'Event Date *', 
-            hintText: 'Select date', 
+            label: 'Event Date *',
+            hintText: 'Select date',
             controller: controller.dateController,
             readOnly: true,
             onTap: () async {
@@ -43,14 +43,23 @@ class NewEventPage extends StatelessWidget {
                 lastDate: DateTime(2101),
               );
               if (pickedDate != null) {
-                controller.dateController.text = "${pickedDate.toLocal()}".split(' ')[0];
+                controller.dateController.text = "${pickedDate.toLocal()}"
+                    .split(' ')[0];
               }
             },
           ),
           SizedBox(height: 16.h),
-          _buildInput(label: 'Event Name *', hintText: 'e.g., Conference 2026', controller: controller.nameController),
+          _buildInput(
+            label: 'Event Name *',
+            hintText: 'e.g., Conference 2026',
+            controller: controller.nameController,
+          ),
           SizedBox(height: 16.h),
-          _buildInput(label: 'Event Note *', hintText: 'Enter notes', controller: controller.noteController),
+          _buildInput(
+            label: 'Event Note *',
+            hintText: 'Enter notes',
+            controller: controller.noteController,
+          ),
           SizedBox(height: 16.h),
           _buildDropdown(label: 'Event Status*'),
           SizedBox(height: 16.h),
@@ -81,7 +90,8 @@ class NewEventPage extends StatelessWidget {
             EasyLoading.showError('Please enter event note');
             return;
           }
-          if (controller.selectedImagePath.value.isEmpty && controller.existingImageUrl == null) {
+          if (controller.selectedImagePath.value.isEmpty &&
+              controller.existingImageUrl == null) {
             EasyLoading.showError('Please upload an item photo');
             return;
           }
@@ -92,8 +102,8 @@ class NewEventPage extends StatelessWidget {
   }
 
   Widget _buildInput({
-    required String label, 
-    required String hintText, 
+    required String label,
+    required String hintText,
     required TextEditingController controller,
     bool readOnly = false,
     VoidCallback? onTap,
@@ -114,17 +124,17 @@ class NewEventPage extends StatelessWidget {
           controller: controller,
           readOnly: readOnly,
           onTap: onTap,
-          style: GoogleFonts.inter(
-            fontSize: 14.sp,
-            color: AppColors.textColor,
-          ),
+          style: GoogleFonts.inter(fontSize: 14.sp, color: AppColors.textColor),
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: GoogleFonts.inter(
               fontSize: 14.sp,
               color: AppColors.boxTextColor.withOpacity(0.7),
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 14.h,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(color: AppColors.stockColor),
@@ -164,22 +174,37 @@ class NewEventPage extends StatelessWidget {
             border: Border.all(color: AppColors.stockColor, width: 1),
           ),
           child: DropdownButtonHideUnderline(
-            child: Obx(() => DropdownButton<String>(
-              isExpanded: true,
-              value: controller.selectedStatus.value,
-              icon: Icon(
-                Icons.keyboard_arrow_down,
-                color: AppColors.textColor,
-                size: 24.w,
+            child: Obx(
+              () => DropdownButton<String>(
+                isExpanded: true,
+                value: controller.selectedStatus.value,
+                icon: Icon(
+                  Icons.keyboard_arrow_down,
+                  color: AppColors.textColor,
+                  size: 24.w,
+                ),
+                onChanged: (String? newValue) {
+                  if (newValue != null)
+                    controller.selectedStatus.value = newValue;
+                },
+                items: [
+                  DropdownMenuItem(
+                    value: 'ACTIVE',
+                    child: Text(
+                      'Active',
+                      style: GoogleFonts.inter(fontSize: 14.sp),
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'COMPLETED',
+                    child: Text(
+                      'Completed',
+                      style: GoogleFonts.inter(fontSize: 14.sp),
+                    ),
+                  ),
+                ],
               ),
-              onChanged: (String? newValue) {
-                if (newValue != null) controller.selectedStatus.value = newValue;
-              },
-              items: [
-                DropdownMenuItem(value: 'ACTIVE', child: Text('Active', style: GoogleFonts.inter(fontSize: 14.sp))),
-                DropdownMenuItem(value: 'COMPLETED', child: Text('Completed', style: GoogleFonts.inter(fontSize: 14.sp))),
-              ],
-            )),
+            ),
           ),
         ),
       ],
@@ -192,8 +217,9 @@ class NewEventPage extends StatelessWidget {
       child: Obx(() {
         final hasNewImage = controller.selectedImagePath.isNotEmpty;
         final existingUrl = controller.existingImageUrl;
-        final hasAnyImage = hasNewImage || (existingUrl != null && existingUrl.isNotEmpty);
-        
+        final hasAnyImage =
+            hasNewImage || (existingUrl != null && existingUrl.isNotEmpty);
+
         return Container(
           width: double.infinity,
           decoration: BoxDecoration(
@@ -201,79 +227,90 @@ class NewEventPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(color: AppColors.stockColor),
           ),
-          padding: hasAnyImage ? EdgeInsets.symmetric(vertical: 16.h) : EdgeInsets.all(16.w),
-          child: hasAnyImage 
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 160.w,
-                    height: 140.h,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12.r),
-                      image: hasNewImage
-                          ? DecorationImage(
-                              image: FileImage(File(controller.selectedImagePath.value)),
-                              fit: BoxFit.cover,
-                            )
-                          : DecorationImage(
-                              image: NetworkImage(existingUrl!),
-                              fit: BoxFit.cover,
-                            ),
-                    ),
-                  ),
-                  SizedBox(height: 12.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.camera_alt_outlined, color: const Color(0xFF6B9BF8), size: 18.w),
-                      SizedBox(width: 8.w),
-                      Text(
-                        'Change Photo',
-                        style: GoogleFonts.inter(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF6B9BF8),
-                        ),
+          padding: hasAnyImage
+              ? EdgeInsets.symmetric(vertical: 16.h)
+              : EdgeInsets.all(16.w),
+          child: hasAnyImage
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 160.w,
+                      height: 140.h,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12.r),
+                        image: hasNewImage
+                            ? DecorationImage(
+                                image: FileImage(
+                                  File(controller.selectedImagePath.value),
+                                ),
+                                fit: BoxFit.cover,
+                              )
+                            : DecorationImage(
+                                image: NetworkImage(existingUrl!),
+                                fit: BoxFit.cover,
+                              ),
                       ),
-                    ],
-                  ),
-                ],
-              )
-            : Row(
-                children: [
-                  Icon(Icons.center_focus_weak_outlined, color: AppColors.textColor, size: 24.w),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
+                    ),
+                    SizedBox(height: 12.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        Icon(
+                          Icons.camera_alt_outlined,
+                          color: const Color(0xFF6B9BF8),
+                          size: 18.w,
+                        ),
+                        SizedBox(width: 8.w),
                         Text(
-                          'Upload / Capture Photo',
+                          'Change Photo',
                           style: GoogleFonts.inter(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
                             color: const Color(0xFF6B9BF8),
                           ),
                         ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          'Helps with visual Identification during audits',
-                          style: GoogleFonts.inter(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.boxTextColor,
-                          ),
-                        ),
                       ],
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Icon(
+                      Icons.center_focus_weak_outlined,
+                      color: AppColors.textColor,
+                      size: 24.w,
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Upload / Capture Photo',
+                            style: GoogleFonts.inter(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF6B9BF8),
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            'Helps with visual Identification during audits',
+                            style: GoogleFonts.inter(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.boxTextColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
         );
       }),
     );
   }
 }
-

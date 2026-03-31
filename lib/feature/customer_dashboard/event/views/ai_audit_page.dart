@@ -314,7 +314,7 @@ class _AiAuditPageState extends State<AiAuditPage> {
                                     ),
                                   ),
                                   Text(
-                                    'Equipment',
+                                    'Equipment', // change this with "category": "Ceremony", -> like others name, image, cost
                                     style: GoogleFonts.inter(
                                       fontSize: 12.sp,
                                       color: AppColors.boxTextColor,

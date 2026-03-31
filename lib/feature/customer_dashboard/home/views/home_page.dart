@@ -6,6 +6,8 @@ import 'package:q45gofna6/core/constant/app_text_styles.dart';
 import '../../../../core/constant/app_colors.dart';
 import '../controllers/home_controller.dart';
 import '../../event/views/new_event_page.dart';
+import '../../event/views/event_page.dart';
+import '../../event/views/event_details_page.dart';
 import '../../event/controllers/event_controller.dart';
 
 class HomePage extends StatelessWidget {
@@ -301,18 +303,21 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 2.h),
-                  Text(
-                    '3 total events',
-                    style: GoogleFonts.inter(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.boxTextColor,
-                    ),
-                  ),
+                  Obx(() {
+                    final eventController = Get.find<EventController>();
+                    return Text(
+                      '${eventController.events.length} total events',
+                      style: GoogleFonts.inter(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.boxTextColor,
+                      ),
+                    );
+                  }),
                 ],
               ),
               InkWell(
-                onTap: () {},
+                onTap: () => Get.to(() => EventPage(showBackButton: true)),
                 child: Row(
                   children: [
                     Text(
@@ -335,42 +340,90 @@ class HomePage extends StatelessWidget {
             ],
           ),
           SizedBox(height: 16.h),
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
-          _buildEventItem(
-            icon: Icons.auto_awesome,
-            iconBgColor: const Color(0xFFE8F5E9),
-            iconColor: Colors.green,
-            title: 'Corporate Conference',
-            dateAndItems: 'Feb 15 • 4 items',
-            status: 'Done',
-            statusBgColor: const Color(0xFFF5F5F5),
-            statusTextColor: AppColors.boxTextColor,
-            trailingWidget: Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.red, size: 14.w),
-                SizedBox(width: 4.w),
-                Text(
-                  '1',
-                  style: GoogleFonts.inter(
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.red,
+          Obx(() {
+            final eventController = Get.find<EventController>();
+            if (eventController.isEventsLoading.value && eventController.events.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (eventController.events.isEmpty) {
+              return Padding(
+                padding: EdgeInsets.all(16.w),
+                child: Center(
+                  child: Text(
+                    'No events found',
+                    style: GoogleFonts.inter(
+                      fontSize: 14.sp,
+                      color: AppColors.boxTextColor,
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
-          _buildEventItem(
-            icon: Icons.calendar_today_outlined,
-            iconBgColor: AppColors.stockColor,
-            iconColor: AppColors.buttonColor,
-            title: 'Product Launch Event',
-            dateAndItems: 'Mar 5 • 5 items',
-            status: 'Active',
-            statusBgColor: const Color(0xFFE8F5E9),
-            statusTextColor: Colors.green,
-          ),
+              );
+            }
+            // Show only the 2 most recent events
+            final recentEvents = eventController.events.take(2).toList();
+            return Column(
+              children: recentEvents.asMap().entries.map((entry) {
+                final index = entry.key;
+                final event = entry.value;
+                final bool isLast = index == recentEvents.length - 1;
+
+                // Determine dynamic status values
+                final bool isActive = event.status == 'Active';
+                final String statusStr = isActive ? 'Active' : 'Done';
+                final Color statusBgColor = isActive ? const Color(0xFFE8F5E9) : const Color(0xFFF5F5F5);
+                final Color statusTextColor = isActive ? Colors.green : AppColors.boxTextColor;
+                final IconData icon = isActive ? Icons.calendar_today_outlined : Icons.auto_awesome;
+                final Color iconBgColor = isActive ? AppColors.stockColor : const Color(0xFFE8F5E9);
+                final Color iconColor = isActive ? AppColors.buttonColor : Colors.green;
+
+                // Handle date formatting
+                String displayDate = event.date;
+                if (displayDate.contains('T')) {
+                    displayDate = displayDate.split('T')[0];
+                    try {
+                        final dt = DateTime.parse(displayDate);
+                        final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        displayDate = '${months[dt.month - 1]} ${dt.day}';
+                    } catch(_) {}
+                }
+
+                return Column(
+                  children: [
+                    if (index > 0) const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                    InkWell(
+                      onTap: () => Get.to(() => EventDetailsPage(event: event)),
+                      child: _buildEventItem(
+                        icon: icon,
+                        iconBgColor: iconBgColor,
+                        iconColor: iconColor,
+                        title: event.title,
+                        dateAndItems: '$displayDate • ${event.items} items',
+                        status: statusStr,
+                        statusBgColor: statusBgColor,
+                        statusTextColor: statusTextColor,
+                        trailingWidget: event.hasIssue 
+                          ? Row(
+                              children: [
+                                Icon(Icons.error_outline, color: Colors.red, size: 14.w),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  '1', // Logic for issues could be expanded here
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : null,
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            );
+          }),
         ],
       ),
     );

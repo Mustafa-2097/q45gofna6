@@ -409,6 +409,11 @@ class ApiService {
 
   // ================= AUDIT METHODS =================
 
+  /// Get Audit Reports
+  static Future<http.Response> getAuditReports() async {
+    return await get(ApiEndpoints.auditReports);
+  }
+
   /// Get Audits
   static Future<http.Response> getAudits(String eventId) async {
     final url = ApiEndpoints.eventAudit.replaceFirst(':eventId', eventId);
@@ -482,5 +487,22 @@ class ApiService {
   static Future<http.Response> runAiAudit(String auditId) async {
     final url = ApiEndpoints.runAiAudit.replaceFirst(':id', auditId);
     return await post(url, {});
+  }
+
+  /// Get event missing items
+  static Future<http.Response> getMissingItems(String eventId) async {
+    final url = ApiEndpoints.missingItems.replaceFirst(':id', eventId);
+    return await get(url);
+  }
+
+  /// Revoke a missing item (Found)
+  static Future<http.Response> revokeMissingItem({
+    required String auditId,
+    required String itemId,
+  }) async {
+    final url = ApiEndpoints.revokeMissingItem
+        .replaceFirst(':id', auditId)
+        .replaceFirst(':itemId', itemId);
+    return await patch(url, {});
   }
 }

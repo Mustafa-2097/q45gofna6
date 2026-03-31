@@ -29,115 +29,132 @@ class _CaptureBeforeImagePageState extends State<CaptureBeforeImagePage> {
         builder: (context, setStateDialog) {
           return Dialog(
             backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.r),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(20.w),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Tittle',
-                style: GoogleFonts.inter(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textColor,
-                ),
-              ),
-              SizedBox(height: 12.h),
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  hintText: 'Enter title (e.g., Table 1)...',
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: 14.sp,
-                    color: Colors.grey,
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 12.h,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20.h),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: isDialogLoading ? null : () async {
-                    if (_titleController.text.trim().isEmpty) {
-                      Get.snackbar('Error', 'Please enter a title');
-                      return;
-                    }
-
-                    setStateDialog(() => isDialogLoading = true);
-                    try {
-                      final response = await ApiService.createAudit(
-                        eventId: widget.eventId,
-                        data: {'title': _titleController.text.trim()},
-                        beforeImagePath: _selectedImagePath,
-                      );
-
-                      if (response.statusCode == 201 || response.statusCode == 200) {
-                        Get.back(); // Close dialog
-                        
-                        // Re-fetch audits immediately
-                        if (Get.isRegistered<EventController>()) {
-                          Get.find<EventController>().fetchEventAudits(widget.eventId);
-                        }
-
-                        Get.back(); // Navigate back to Event Details
-                        Get.snackbar('Success', 'Baseline captured successfully');
-                      } else {
-                        Get.snackbar('Error', 'Failed to capture baseline: ${response.statusCode}');
-                      }
-                    } catch (e) {
-                      Get.snackbar('Error', 'Something went wrong');
-                      debugPrint('Audit Error: $e');
-                    } finally {
-                      if (mounted) {
-                        setStateDialog(() => isDialogLoading = false);
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.buttonColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(20.w),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tittle',
+                    style: GoogleFonts.inter(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textColor,
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 14.h),
-                    elevation: 0,
                   ),
-                  child: isDialogLoading 
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Text(
-                        'Done',
-                        style: GoogleFonts.inter(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
+                  SizedBox(height: 12.h),
+                  TextField(
+                    controller: _titleController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter title (e.g., Table 1)...',
+                      hintStyle: GoogleFonts.inter(
+                        fontSize: 14.sp,
+                        color: Colors.grey,
                       ),
-                ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 12.h,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isDialogLoading
+                          ? null
+                          : () async {
+                              if (_titleController.text.trim().isEmpty) {
+                                Get.snackbar('Error', 'Please enter a title');
+                                return;
+                              }
+
+                              setStateDialog(() => isDialogLoading = true);
+                              try {
+                                final response = await ApiService.createAudit(
+                                  eventId: widget.eventId,
+                                  data: {'title': _titleController.text.trim()},
+                                  beforeImagePath: _selectedImagePath,
+                                );
+
+                                if (response.statusCode == 201 ||
+                                    response.statusCode == 200) {
+                                  Get.back(); // Close dialog
+
+                                  // Re-fetch audits immediately
+                                  if (Get.isRegistered<EventController>()) {
+                                    Get.find<EventController>()
+                                        .fetchEventAudits(widget.eventId);
+                                  }
+
+                                  Get.back(); // Navigate back to Event Details
+                                  Get.snackbar(
+                                    'Success',
+                                    'Baseline captured successfully',
+                                  );
+                                } else {
+                                  Get.snackbar(
+                                    'Error',
+                                    'Failed to capture baseline: ${response.statusCode}',
+                                  );
+                                }
+                              } catch (e) {
+                                Get.snackbar('Error', 'Something went wrong');
+                                debugPrint('Audit Error: $e');
+                              } finally {
+                                if (mounted) {
+                                  setStateDialog(() => isDialogLoading = false);
+                                }
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.buttonColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        elevation: 0,
+                      ),
+                      child: isDialogLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              'Done',
+                              style: GoogleFonts.inter(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      );
-      },
-    ),
-    barrierColor: Colors.black.withOpacity(0.3),
-  );
-}
+            ),
+          );
+        },
+      ),
+      barrierColor: Colors.black.withOpacity(0.3),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -235,7 +252,9 @@ class _CaptureBeforeImagePageState extends State<CaptureBeforeImagePage> {
         ElevatedButton.icon(
           onPressed: () async {
             final ImagePicker picker = ImagePicker();
-            final XFile? image = await picker.pickImage(source: ImageSource.camera);
+            final XFile? image = await picker.pickImage(
+              source: ImageSource.camera,
+            );
             if (image != null) {
               setState(() {
                 _selectedImagePath = image.path;
@@ -243,7 +262,11 @@ class _CaptureBeforeImagePageState extends State<CaptureBeforeImagePage> {
               });
             }
           },
-          icon: Icon(Icons.camera_alt_outlined, size: 20.w, color: Colors.white),
+          icon: Icon(
+            Icons.camera_alt_outlined,
+            size: 20.w,
+            color: Colors.white,
+          ),
           label: Text(
             'Capture Baseline Photo',
             style: GoogleFonts.inter(
@@ -271,14 +294,14 @@ class _CaptureBeforeImagePageState extends State<CaptureBeforeImagePage> {
         Expanded(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16.r),
-            child: _selectedImagePath != null 
-              ? Image.file(
-                  File(_selectedImagePath!),
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                )
-              : Container(color: Colors.grey[300]),
+            child: _selectedImagePath != null
+                ? Image.file(
+                    File(_selectedImagePath!),
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                  )
+                : Container(color: Colors.grey[300]),
           ),
         ),
         SizedBox(height: 24.h),

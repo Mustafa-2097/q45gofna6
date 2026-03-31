@@ -23,12 +23,64 @@ class EventController extends GetxController {
   String? editEventId;
   String? existingImageUrl;
 
-  final allEvents = <EventModel>[].obs;
+  final events = <EventModel>[].obs;
+  var isEventsLoading = false.obs;
 
   // Audit State
   final audits = <AuditModel>[].obs;
   final isAudisLoading = false.obs;
   final auditReport = Rxn<AuditReport>();
+
+  final eventMissings = <EventMissingResponse>[].obs;
+  final isMissingsLoading = false.obs;
+
+  Future<void> fetchMissingItems(String eventId) async {
+    isMissingsLoading.value = true;
+    try {
+      final response = await ApiService.getMissingItems(eventId);
+      final data = jsonDecode(response.body);
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          data['success'] == true) {
+        final List list = data['data'] ?? [];
+        eventMissings.assignAll(
+          list.map((e) => EventMissingResponse.fromJson(e)).toList(),
+        );
+      } else {
+        eventMissings.clear();
+      }
+    } catch (e) {
+      debugPrint('Error fetching missing items: $e');
+      eventMissings.clear();
+    } finally {
+      isMissingsLoading.value = false;
+    }
+  }
+
+  Future<bool> revokeMissingItem(String auditId, String itemId) async {
+    EasyLoading.show(status: 'Marking item as found...');
+    try {
+      final response = await ApiService.revokeMissingItem(
+        auditId: auditId,
+        itemId: itemId,
+      );
+      final data = jsonDecode(response.body);
+
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          data['success'] == true) {
+        EasyLoading.showSuccess('Item marked as found');
+        return true;
+      } else {
+        EasyLoading.showError(data['message'] ?? 'Failed to mark item');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Error revoking missing item: $e');
+      EasyLoading.showError('Something went wrong');
+      return false;
+    } finally {
+      EasyLoading.dismiss();
+    }
+  }
 
   Future<void> fetchEventAudits(String eventId) async {
     isAudisLoading.value = true;
@@ -85,9 +137,10 @@ class EventController extends GetxController {
       currentPage++;
     } else {
       isLoading.value = true;
+      isEventsLoading.value = true;
       currentPage = 1;
       hasMore.value = true;
-      allEvents.clear();
+      events.clear();
     }
 
     try {
@@ -109,15 +162,16 @@ class EventController extends GetxController {
             .toList();
 
         if (isLoadMore) {
-          allEvents.addAll(newEvents);
+          events.addAll(newEvents);
         } else {
-          allEvents.assignAll(newEvents);
+          events.assignAll(newEvents);
         }
       }
     } catch (e) {
       debugPrint('Error fetching events: $e');
     } finally {
       isLoading.value = false;
+      isEventsLoading.value = false;
       isMoreLoading.value = false;
     }
   }
@@ -367,14 +421,14 @@ class EventController extends GetxController {
 
   List<EventModel> get filteredEvents {
     final tab = selectedTab.value;
-    if (tab == 'All') return allEvents;
+    if (tab == 'All') return events;
     // Tab labels: 'Active', 'Completed' — match normalized model status
-    return allEvents.where((e) => e.status == tab).toList();
+    return events.where((e) => e.status == tab).toList();
   }
 
-  int get totalCount => allEvents.length;
-  int get activeCount => allEvents.where((e) => e.status == 'Active').length;
-  int get doneCount => allEvents.where((e) => e.status == 'Completed').length;
+  int get totalCount => events.length;
+  int get activeCount => events.where((e) => e.status == 'Active').length;
+  int get doneCount => events.where((e) => e.status == 'Completed').length;
 
   void selectTab(String tab) {
     selectedTab.value = tab;

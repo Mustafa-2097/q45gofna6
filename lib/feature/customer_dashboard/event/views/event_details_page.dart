@@ -56,9 +56,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                       SizedBox(height: 20.h),
                       _buildAuditProgress(),
                       SizedBox(height: 30.h),
+
                       //_buildEventKit(),
                       // edit event section method will be here
-
                       PrimaryButton(text: "Mark as Complete", onPressed: () {}),
                       SizedBox(height: 30.h),
                     ],
@@ -116,11 +116,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                 color: AppColors.buttonColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.edit,
-                color: AppColors.buttonColor,
-                size: 20.w,
-              ),
+              child: Icon(Icons.edit, color: AppColors.buttonColor, size: 20.w),
             ),
           ),
         ],
@@ -299,7 +295,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => Get.to(() => AiAuditPage(eventId: widget.event.id)),
+              onPressed: () =>
+                  Get.to(() => AiAuditPage(eventId: widget.event.id)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.buttonColor,
                 shape: RoundedRectangleBorder(
@@ -368,7 +365,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             ),
           ),
           ElevatedButton(
-            onPressed: () => Get.to(() => CaptureBeforeImagePage(eventId: widget.event.id)),
+            onPressed: () =>
+                Get.to(() => CaptureBeforeImagePage(eventId: widget.event.id)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.buttonColor,
               shape: RoundedRectangleBorder(
@@ -394,9 +392,10 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   }
 
   Widget _buildAuditItemCard({required AuditModel audit}) {
-    final hasAfterCapture = audit.afterImage != null && audit.afterImage!.isNotEmpty;
+    final hasAfterCapture =
+        audit.afterImage != null && audit.afterImage!.isNotEmpty;
     final canRunAudit = hasAfterCapture && !audit.checked;
-    
+
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -404,10 +403,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: const Color(0xFFF1F5F9)),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
         ],
       ),
       child: Column(
@@ -454,11 +450,13 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                             borderRadius: 8.r,
                           )
                         : GestureDetector(
-                            onTap: () => Get.to(() => CaptureAfterImagePage(
-                              eventId: widget.event.id,
-                              auditId: audit.id,
-                              beforeImage: audit.beforeImage,
-                            )),
+                            onTap: () => Get.to(
+                              () => CaptureAfterImagePage(
+                                eventId: widget.event.id,
+                                auditId: audit.id,
+                                beforeImage: audit.beforeImage,
+                              ),
+                            ),
                             child: Container(
                               height: 120.h,
                               decoration: BoxDecoration(
@@ -520,7 +518,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       ),
     );
   }
-
 
   // Widget _buildEventKit() {
   //   return Container(
@@ -610,10 +607,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                 color: const Color(0xFFE8F3DB),
                 borderRadius: BorderRadius.circular(12.r),
               ),
-                child: CommonImage(
-                  imageUrl: imageUrl,
-                  borderRadius: 12.r,
-                ),
+              child: CommonImage(imageUrl: imageUrl, borderRadius: 12.r),
             ),
           ),
           Padding(

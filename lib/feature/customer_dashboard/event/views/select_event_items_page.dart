@@ -10,6 +10,7 @@ import '../../../../core/constant/widgets/item_card_widget.dart';
 import '../controllers/event_controller.dart';
 import '../../inventory/controllers/inventory_controller.dart';
 import 'event_details_page.dart';
+import '../../dashboard/dashboard.dart';
 
 class SelectEventItemsPage extends StatefulWidget {
   const SelectEventItemsPage({super.key});
@@ -20,7 +21,8 @@ class SelectEventItemsPage extends StatefulWidget {
 
 class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
   final EventController controller = Get.find<EventController>();
-  final InventoryController inventoryController = Get.find<InventoryController>();
+  final InventoryController inventoryController =
+      Get.find<InventoryController>();
   final ScrollController scrollController = ScrollController();
 
   @override
@@ -32,7 +34,8 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
   }
 
   void _onScroll() {
-    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
       inventoryController.fetchInventoryItems(isLoadMore: true);
     }
   }
@@ -77,16 +80,19 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
             Padding(
               padding: EdgeInsets.all(20.w),
               child: PrimaryButton(
-                text: controller.editEventId != null ? "Update Event" : "Create Event",
+                text: controller.editEventId != null
+                    ? "Update Event"
+                    : "Create Event",
                 onPressed: () async {
                   if (controller.selectedItems.isEmpty) {
                     if (controller.editEventId != null) {
                       // Check if other text fields or status have changed even if items are empty
                       // If any main field changed, we still want to call update
-                      final hasDetailsChanged = controller.nameController.text.isNotEmpty || 
-                                              controller.dateController.text.isNotEmpty || 
-                                              controller.selectedImagePath.isNotEmpty;
-                      
+                      final hasDetailsChanged =
+                          controller.nameController.text.isNotEmpty ||
+                          controller.dateController.text.isNotEmpty ||
+                          controller.selectedImagePath.isNotEmpty;
+
                       if (!hasDetailsChanged) {
                         EasyLoading.showInfo('No changes made');
                         Get.back(); // Go back from Select items
@@ -99,10 +105,10 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
                       return;
                     }
                   }
-                  
+
                   final event = await controller.createEvent();
                   if (event != null) {
-                    Get.off(() => EventDetailsPage(event: event));
+                    Get.offAll(() => const CustomerDashboard(initialIndex: 0));
                   }
                 },
               ),
@@ -152,9 +158,12 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
     // Calculate total value based on selected items if possible
     double totalValue = 0;
     for (var id in controller.selectedItems) {
-      final item = inventoryController.inventoryItems.firstWhereOrNull((i) => i.id == id);
+      final item = inventoryController.inventoryItems.firstWhereOrNull(
+        (i) => i.id == id,
+      );
       if (item != null) {
-        totalValue += (item.cost * (controller.selectedItemQuantities[id] ?? 1));
+        totalValue +=
+            (item.cost * (controller.selectedItemQuantities[id] ?? 1));
       }
     }
 
@@ -257,13 +266,15 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
                 ),
               ),
               SizedBox(height: 4.h),
-              Obx(() => Text(
-                '${inventoryController.inventoryItems.length} items available',
-                style: GoogleFonts.inter(
-                  fontSize: 12.sp,
-                  color: AppColors.boxTextColor,
+              Obx(
+                () => Text(
+                  '${inventoryController.inventoryItems.length} items available',
+                  style: GoogleFonts.inter(
+                    fontSize: 12.sp,
+                    color: AppColors.boxTextColor,
+                  ),
                 ),
-              )),
+              ),
             ],
           ),
         ],
@@ -303,7 +314,8 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: inventoryController.categories.map((category) {
-          final isSelected = inventoryController.selectedCategory.value == category;
+          final isSelected =
+              inventoryController.selectedCategory.value == category;
           return GestureDetector(
             onTap: () => inventoryController.selectCategory(category),
             child: Container(
@@ -335,7 +347,8 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
         child: const Center(child: CircularProgressIndicator()),
       );
     }
-    if (!inventoryController.hasMore.value && inventoryController.inventoryItems.isNotEmpty) {
+    if (!inventoryController.hasMore.value &&
+        inventoryController.inventoryItems.isNotEmpty) {
       return Padding(
         padding: EdgeInsets.symmetric(vertical: 8.h),
         child: Center(
@@ -382,12 +395,15 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
           },
           child: Obx(() {
             final isSelected = controller.selectedItems.contains(item.id);
-            final currentQuantity = controller.selectedItemQuantities[item.id] ?? 1;
+            final currentQuantity =
+                controller.selectedItemQuantities[item.id] ?? 1;
             return Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16.r),
                 border: Border.all(
-                  color: isSelected ? AppColors.buttonColor : Colors.transparent,
+                  color: isSelected
+                      ? AppColors.buttonColor
+                      : Colors.transparent,
                   width: 2,
                 ),
               ),
@@ -401,7 +417,8 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
                     stock: item.stock,
                     showQuantityControls: isSelected,
                     quantity: currentQuantity,
-                    onIncrease: () => controller.increaseQuantity(item.id, item.stock),
+                    onIncrease: () =>
+                        controller.increaseQuantity(item.id, item.stock),
                     onDecrease: () => controller.decreaseQuantity(item.id),
                   ),
                   if (isSelected)
@@ -414,7 +431,11 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
                           color: AppColors.buttonColor,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.check, color: Colors.white, size: 16.w),
+                        child: Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 16.w,
+                        ),
                       ),
                     ),
                 ],

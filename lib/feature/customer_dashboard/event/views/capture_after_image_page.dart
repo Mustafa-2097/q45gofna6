@@ -54,29 +54,29 @@ class _CaptureAfterImagePageState extends State<CaptureAfterImagePage> {
             ),
             SizedBox(height: 20.h),
             if (widget.beforeImage != null && !_isCaptured)
-               Padding(
-                 padding: EdgeInsets.symmetric(horizontal: 20.w),
-                 child: Column(
-                   crossAxisAlignment: CrossAxisAlignment.start,
-                   children: [
-                     Text(
-                       'Before Image Reference:',
-                       style: GoogleFonts.inter(
-                         fontSize: 12.sp,
-                         fontWeight: FontWeight.w600,
-                         color: AppColors.textColor,
-                       ),
-                     ),
-                     SizedBox(height: 8.h),
-                     CommonImage(
-                       imageUrl: widget.beforeImage!,
-                       height: 100.h,
-                       width: double.infinity,
-                       borderRadius: 12.r,
-                     ),
-                   ],
-                 ),
-               ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Before Image Reference:',
+                      style: GoogleFonts.inter(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textColor,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    CommonImage(
+                      imageUrl: widget.beforeImage!,
+                      height: 100.h,
+                      width: double.infinity,
+                      borderRadius: 12.r,
+                    ),
+                  ],
+                ),
+              ),
             SizedBox(height: 20.h),
             Expanded(
               child: Container(
@@ -151,7 +151,9 @@ class _CaptureAfterImagePageState extends State<CaptureAfterImagePage> {
         ElevatedButton.icon(
           onPressed: () async {
             final ImagePicker picker = ImagePicker();
-            final XFile? image = await picker.pickImage(source: ImageSource.camera);
+            final XFile? image = await picker.pickImage(
+              source: ImageSource.camera,
+            );
             if (image != null) {
               setState(() {
                 _selectedImagePath = image.path;
@@ -159,7 +161,11 @@ class _CaptureAfterImagePageState extends State<CaptureAfterImagePage> {
               });
             }
           },
-          icon: Icon(Icons.camera_alt_outlined, size: 20.w, color: Colors.white),
+          icon: Icon(
+            Icons.camera_alt_outlined,
+            size: 20.w,
+            color: Colors.white,
+          ),
           label: Text(
             'Capture After Photo',
             style: GoogleFonts.inter(
@@ -187,14 +193,14 @@ class _CaptureAfterImagePageState extends State<CaptureAfterImagePage> {
         Expanded(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16.r),
-            child: _selectedImagePath != null 
-              ? Image.file(
-                  File(_selectedImagePath!),
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                )
-              : Container(color: Colors.grey[300]),
+            child: _selectedImagePath != null
+                ? Image.file(
+                    File(_selectedImagePath!),
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                  )
+                : Container(color: Colors.grey[300]),
           ),
         ),
         SizedBox(height: 24.h),
@@ -228,13 +234,13 @@ class _CaptureAfterImagePageState extends State<CaptureAfterImagePage> {
               child: ElevatedButton(
                 onPressed: () async {
                   if (_selectedImagePath == null) return;
-                  
+
                   final success = await controller.updateAuditAfterImage(
                     auditId: widget.auditId,
                     imagePath: _selectedImagePath!,
                     eventId: widget.eventId,
                   );
-                  
+
                   if (success) {
                     Get.back();
                   }

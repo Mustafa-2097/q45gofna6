@@ -176,3 +176,57 @@ class AuditReport {
     );
   }
 }
+
+class EventMissingResponse {
+  final String auditId;
+  final String auditName;
+  final String date;
+  final List<EventMissingItem> missingItems;
+
+  EventMissingResponse({
+    required this.auditId,
+    required this.auditName,
+    required this.date,
+    required this.missingItems,
+  });
+
+  factory EventMissingResponse.fromJson(Map<String, dynamic> json) {
+    return EventMissingResponse(
+      auditId: json['auditId'] ?? '',
+      auditName: json['auditName'] ?? '',
+      date: json['date'] ?? '',
+      missingItems: (json['missingItems'] as List? ?? [])
+          .map((e) => EventMissingItem.fromJson(e))
+          .toList(),
+    );
+  }
+}
+
+class EventMissingItem {
+  final String id;
+  final String name;
+  final String? image;
+  final String category;
+  final int missingCount;
+  final double price;
+
+  EventMissingItem({
+    required this.id,
+    required this.name,
+    this.image,
+    required this.category,
+    required this.missingCount,
+    required this.price,
+  });
+
+  factory EventMissingItem.fromJson(Map<String, dynamic> json) {
+    return EventMissingItem(
+      id: json['id'] ?? json['_id'] ?? json['itemId'] ?? '',
+      name: json['name'] ?? '',
+      image: AuditModel.cleanUrl(json['image']),
+      category: json['category'] ?? 'Equipment',
+      missingCount: json['missingCount'] ?? 1,
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}

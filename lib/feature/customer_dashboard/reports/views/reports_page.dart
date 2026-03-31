@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:q45gofna6/feature/customer_dashboard/event/views/ai_audit_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constant/app_colors.dart';
 import '../controllers/reports_controller.dart';
+import '../models/reports_model.dart';
 
 class ReportsPage extends StatelessWidget {
   ReportsPage({super.key});
@@ -14,31 +17,46 @@ class ReportsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Reports',
-                style: GoogleFonts.inter(
-                  fontSize: 24.sp,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textColor,
+        child: RefreshIndicator(
+          onRefresh: controller.fetchReports,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Reports',
+                  style: GoogleFonts.inter(
+                    fontSize: 24.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textColor,
+                  ),
                 ),
-              ),
-              SizedBox(height: 20.h),
-              _buildStatsGrid(),
-              SizedBox(height: 20.h),
-              _buildRecentAuditReports(),
-            ],
+                SizedBox(height: 20.h),
+                Obx(() {
+                  if (controller.isLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final data = controller.reportsData.value;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildStatsGrid(data?.statistics),
+                      SizedBox(height: 20.h),
+                      _buildRecentAuditReports(data),
+                    ],
+                  );
+                }),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildStatsGrid() {
+  Widget _buildStatsGrid(ReportsStatistics? stats) {
     return Column(
       children: [
         Row(
@@ -49,7 +67,7 @@ class ReportsPage extends StatelessWidget {
                 iconBg: AppColors.buttonColor,
                 iconColor: Colors.white,
                 label: 'Total Audits',
-                value: '1',
+                value: '${stats?.totalAudits ?? 0}',
               ),
             ),
             SizedBox(width: 16.w),
@@ -59,7 +77,7 @@ class ReportsPage extends StatelessWidget {
                 iconBg: AppColors.redColor,
                 iconColor: Colors.white,
                 label: 'Total Loss',
-                value: '\$450',
+                value: '\$${stats?.totalLoss ?? 0}',
               ),
             ),
           ],
@@ -73,7 +91,7 @@ class ReportsPage extends StatelessWidget {
                 iconBg: const Color(0xFFFF9800),
                 iconColor: Colors.white,
                 label: 'Avg Loss',
-                value: '\$450',
+                value: '\$${stats?.totalAverage ?? 0}',
               ),
             ),
             SizedBox(width: 16.w),
@@ -83,7 +101,7 @@ class ReportsPage extends StatelessWidget {
                 iconBg: const Color(0xFF10B981),
                 iconColor: Colors.white,
                 label: 'Success Rate',
-                value: '0%',
+                value: '${stats?.successRate ?? 0}%',
               ),
             ),
           ],
@@ -146,7 +164,11 @@ class ReportsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentAuditReports() {
+  Widget _buildRecentAuditReports(ReportsData? data) {
+    final reports = data?.recentReports;
+    final pdfUrl = data?.pdf;
+    final int completedCount = reports?.length ?? 0;
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(16.w),
@@ -164,31 +186,129 @@ class ReportsPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Recent Audit Reports',
-            style: GoogleFonts.inter(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textColor,
-            ),
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            '1 completed audits',
-            style: GoogleFonts.inter(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w400,
-              color: AppColors.boxTextColor,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recent Audit Reports',
+                    style: GoogleFonts.inter(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textColor,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    '$completedCount completed audits',
+                    style: GoogleFonts.inter(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.boxTextColor,
+                    ),
+                  ),
+                ],
+              ),
+              if (pdfUrl != null && pdfUrl.isNotEmpty)
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    String cleanUrl = pdfUrl;
+                    if (cleanUrl.contains('localhost')) {
+                      cleanUrl = cleanUrl.replaceFirst(
+                        'localhost:5000',
+                        '206.162.244.189:5005',
+                      );
+                    } else if (cleanUrl.contains('127.0.0.1')) {
+                      cleanUrl = cleanUrl.replaceFirst(
+                        '127.0.0.1:5000',
+                        '206.162.244.189:5005',
+                      );
+                    }
+                    if (!cleanUrl.startsWith('http')) {
+                      cleanUrl = cleanUrl.startsWith('/')
+                          ? 'http://206.162.244.189:5005$cleanUrl'
+                          : 'http://206.162.244.189:5005/$cleanUrl';
+                    }
+                    final Uri url = Uri.parse(cleanUrl);
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(
+                        url,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    } else {
+                      Get.snackbar('Error', 'Could not open PDF file.'); // this should easyloading msg
+                    }
+                  },
+                  icon: Icon(
+                    Icons.download_outlined,
+                    size: 16.w,
+                    color: AppColors.boxTextColor,
+                  ),
+                  label: Text(
+                    'PDF',
+                    style: GoogleFonts.inter(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.boxTextColor,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(
+                      color: AppColors.boxTextColor.withValues(alpha: 0.3),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                ),
+            ],
           ),
           SizedBox(height: 20.h),
-          _buildAuditReportCard(),
+          if (reports == null || reports.isEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.h),
+              child: Center(
+                child: Text(
+                  'No recent audits',
+                  style: GoogleFonts.inter(
+                    fontSize: 14.sp,
+                    color: AppColors.boxTextColor,
+                  ),
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: reports.length,
+              separatorBuilder: (context, index) => SizedBox(height: 16.h),
+              itemBuilder: (context, index) {
+                return _buildAuditReportCard(reports[index]);
+              },
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildAuditReportCard() {
+  Widget _buildAuditReportCard(RecentReport report) {
+    String formattedDate = report.date ?? '';
+    if (formattedDate.length > 10) {
+      try {
+        final d = DateTime.parse(formattedDate);
+        formattedDate = '${d.day}/${d.month}/${d.year}';
+      } catch (e) {
+        // keep as is
+      }
+    }
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(16.w),
@@ -222,7 +342,7 @@ class ReportsPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Corporate Conference 2026',
+                      report.eventName ?? 'Unknown Event',
                       style: GoogleFonts.inter(
                         fontSize: 15.sp,
                         fontWeight: FontWeight.w700,
@@ -231,7 +351,7 @@ class ReportsPage extends StatelessWidget {
                     ),
                     SizedBox(height: 4.h),
                     Text(
-                      'February 15, 2026',
+                      formattedDate,
                       style: GoogleFonts.inter(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w400,
@@ -250,14 +370,14 @@ class ReportsPage extends StatelessWidget {
               Expanded(
                 child: _buildReportStat(
                   label: 'Kit Items',
-                  value: '4',
+                  value: '${report.itemsCount ?? 0}',
                   valueColor: AppColors.textColor,
                 ),
               ),
               Expanded(
                 child: _buildReportStat(
                   label: 'Kit Value',
-                  value: '\$3,480',
+                  value: '\$${report.itemsValue ?? 0}',
                   valueColor: AppColors.textColor,
                 ),
               ),
@@ -272,108 +392,89 @@ class ReportsPage extends StatelessWidget {
               Expanded(
                 child: _buildReportStat(
                   label: 'Missing',
-                  value: '1',
+                  value: '${report.missingCount ?? 0}',
                   valueColor: AppColors.textColor,
                 ),
               ),
               Expanded(
                 child: _buildReportStat(
                   label: 'Loss',
-                  value: '\$450',
+                  value: '\$${report.missingValue ?? 0}',
                   valueColor: AppColors.redColor,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 20.h),
-          // Missing items chip section
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(14.w),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFDE8E8).withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Missing Items:',
-                  style: GoogleFonts.inter(
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.redColor,
+          if (report.missingItems != null &&
+              report.missingItems!.isNotEmpty) ...[
+            SizedBox(height: 20.h),
+            // Missing items chip section
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(14.w),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDE8E8).withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Missing Items:',
+                    style: GoogleFonts.inter(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.redColor,
+                    ),
                   ),
-                ),
-                SizedBox(height: 10.h),
-                Wrap(
-                  spacing: 8.w,
-                  runSpacing: 8.h,
-                  children: [_buildItemChip('Wireless Microphone')],
-                ),
-              ],
+                  SizedBox(height: 10.h),
+                  Wrap(
+                    spacing: 8.w,
+                    runSpacing: 8.h,
+                    children: report.missingItems!.map((m) {
+                      String label = 'Unknown Item';
+                      if (m is Map) {
+                        label = m['name'] ?? 'Unknown Item';
+                      } else if (m is String) {
+                        label = m;
+                      }
+                      return _buildItemChip(label);
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
           SizedBox(height: 16.h),
           // Action buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.arrow_forward_ios,
-                    size: 14.w,
-                    color: AppColors.buttonColor,
-                  ),
-                  label: Text(
-                    'View Details',
-                    style: GoogleFonts.inter(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.buttonColor,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                      color: AppColors.buttonColor.withValues(alpha: 0.3),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 12.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () =>
+                  Get.to(() => AiAuditPage(eventId: report.eventId ?? '')),
+              icon: Icon(
+                Icons.arrow_forward_ios,
+                size: 14.w,
+                color: AppColors.buttonColor,
+              ),
+              label: Text(
+                'View Details',
+                style: GoogleFonts.inter(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.buttonColor,
                 ),
               ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.download_outlined,
-                    size: 16.w,
-                    color: AppColors.boxTextColor,
-                  ),
-                  label: Text(
-                    'PDF',
-                    style: GoogleFonts.inter(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.boxTextColor,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                      color: AppColors.boxTextColor.withValues(alpha: 0.3),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 12.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(
+                  color: AppColors.buttonColor.withValues(alpha: 0.3),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -424,24 +525,13 @@ class ReportsPage extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.volume_up_outlined,
-            size: 14.w,
-            color: AppColors.boxTextColor,
-          ),
-          SizedBox(width: 6.w),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textColor,
-            ),
-          ),
-        ],
+      child: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textColor,
+        ),
       ),
     );
   }

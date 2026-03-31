@@ -9,7 +9,8 @@ import 'event_details_page.dart';
 import '../models/event_model.dart';
 
 class EventPage extends StatefulWidget {
-  EventPage({super.key});
+  final bool showBackButton;
+  EventPage({super.key, this.showBackButton = false});
 
   @override
   State<EventPage> createState() => _EventPageState();
@@ -26,7 +27,8 @@ class _EventPageState extends State<EventPage> {
   }
 
   void _onScroll() {
-    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
       controller.fetchEvents(isLoadMore: true);
     }
   }
@@ -51,29 +53,52 @@ class _EventPageState extends State<EventPage> {
             controller: scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Event',
-                style: GoogleFonts.inter(
-                  fontSize: 24.sp,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textColor,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    if (widget.showBackButton) ...[
+                      InkWell(
+                        onTap: () => Get.back(),
+                        child: Container(
+                          padding: EdgeInsets.all(8.w),
+                          margin: EdgeInsets.only(right: 12.w),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.arrow_back,
+                            color: AppColors.textColor,
+                            size: 20.w,
+                          ),
+                        ),
+                      ),
+                    ],
+                    Text(
+                      'Event',
+                      style: GoogleFonts.inter(
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textColor,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              SizedBox(height: 16.h),
-              _buildSearchBar(),
-              SizedBox(height: 20.h),
-              _buildStatsRow(),
-              SizedBox(height: 20.h),
-              _buildFilterTabs(),
-              SizedBox(height: 20.h),
-              _buildEventList(),
-            ],
+                SizedBox(height: 16.h),
+                _buildSearchBar(),
+                SizedBox(height: 20.h),
+                _buildStatsRow(),
+                SizedBox(height: 20.h),
+                _buildFilterTabs(),
+                SizedBox(height: 20.h),
+                _buildEventList(),
+              ],
+            ),
           ),
         ),
-      )),
+      ),
     );
   }
 
@@ -370,7 +395,9 @@ class _EventPageState extends State<EventPage> {
                     SizedBox(width: 4.w),
                     Flexible(
                       child: Text(
-                        event.date.contains('T') ? event.date.split('T')[0] : event.date,
+                        event.date.contains('T')
+                            ? event.date.split('T')[0]
+                            : event.date,
                         style: GoogleFonts.inter(
                           fontSize: 12.sp,
                           color: AppColors.boxTextColor,
