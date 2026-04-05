@@ -492,4 +492,28 @@ class EventController extends GetxController {
       EasyLoading.dismiss();
     }
   }
+
+  Future<bool> completeEvent(String eventId) async {
+    EasyLoading.show(status: 'Marking event as completed...');
+    try {
+      final response = await ApiService.completeEvent(eventId);
+      final data = jsonDecode(response.body);
+
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          data['success'] == true) {
+        EasyLoading.showSuccess('Event marked as completed');
+        fetchEvents(); // Refresh global list
+        return true;
+      } else {
+        EasyLoading.showError(data['message'] ?? 'Failed to complete event');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Error completing event: $e');
+      EasyLoading.showError('Something went wrong');
+      return false;
+    } finally {
+      EasyLoading.dismiss();
+    }
+  }
 }

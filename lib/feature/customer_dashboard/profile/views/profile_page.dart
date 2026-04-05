@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:q45gofna6/core/constant/widgets/logout_button.dart';
 import 'package:q45gofna6/feature/customer_dashboard/subscription/views/subscription_page.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,53 +23,87 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       body: SafeArea(
-        child: Obx(() {
-          if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final userModel = controller.userProfile.value;
-
-          return SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Profile',
-                  style: AppTextStyles.title32(
+                  Text(
+                    'Profile',
+                    style: AppTextStyles.title32(
+                      context,
+                    ).copyWith(color: AppColors.textColor),
+                  ),
+                  SizedBox(height: 24.h),
+                  Obx(() {
+                    if (controller.isLoading.value) {
+                       return _buildProfileShimmer();
+                    }
+                    final userModel = controller.userProfile.value;
+                    return _buildProfileInformationCard(context, controller, userModel?.profile.name ?? ' ', userModel?.email ?? ' ', userModel?.profile.companyName ?? ' ');
+                  }),
+                  SizedBox(height: 16.h),
+                  Obx(() {
+                    if (controller.isSubscriptionLoading.value) {
+                       return _buildSubscriptionShimmer();
+                    }
+                    return _buildSubscriptionCard(context);
+                  }),
+                  SizedBox(height: 24.h),
+                  _buildActionRow(
+                    Icons.shield_outlined,
+                    'Change Password',
                     context,
-                  ).copyWith(color: AppColors.textColor),
-                ),
-                SizedBox(height: 24.h),
-                _buildProfileInformationCard(context, controller, userModel?.profile.name ?? 'N/A', userModel?.email ?? 'N/A', userModel?.profile.companyName ?? 'N/A'),
-                SizedBox(height: 16.h),
-                _buildSubscriptionCard(context),
-                SizedBox(height: 24.h),
-                _buildActionRow(
-                  Icons.shield_outlined,
-                  'Change Password',
-                  context,
-                  onTap: () => Get.to(() => ChangePasswordPage()),
-                ),
-                _buildActionRow(
-                  Icons.help_outline,
-                  'Support Center',
-                  context,
-                  onTap: () => Get.to(() => const SupportCenterPage()),
-                ),
-                _buildActionRow(
-                  Icons.lock_outline,
-                  'Privacy & Policy',
-                  context,
-                  onTap: () => Get.to(() => const PrivacyPolicyPage()),
-                ),
+                    onTap: () => Get.to(() => ChangePasswordPage()),
+                  ),
+                  _buildActionRow(
+                    Icons.help_outline,
+                    'Support Center',
+                    context,
+                    onTap: () => Get.to(() => const SupportCenterPage()),
+                  ),
+                  _buildActionRow(
+                    Icons.lock_outline,
+                    'Privacy & Policy',
+                    context,
+                    onTap: () => Get.to(() => const PrivacyPolicyPage()),
+                  ),
                 LogoutButton(),
                 SizedBox(height: 32.h),
               ],
             ),
-          );
-        }),
+          ),
+      ),
+    );
+  }
+
+  Widget _buildProfileShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.white,
+      highlightColor: Colors.grey[200]!,
+      child: Container(
+        height: 100.h,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.white,
+      highlightColor: Colors.grey[200]!,
+      child: Container(
+        height: 180.h,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
+        ),
       ),
     );
   }
@@ -150,6 +185,80 @@ class ProfilePage extends StatelessWidget {
   }
 
   Widget _buildSubscriptionCard(BuildContext context) {
+    final controller = Get.find<ProfileController>();
+    final subscription = controller.userProfile.value?.subscription;
+    final plan = subscription?.plan;
+    final isActive = subscription?.isActive ?? false;
+
+    if (!isActive) {
+      return Container(
+        padding: EdgeInsets.all(20.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  height: 40.w,
+                  width: 40.w,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF6EBE7A),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.credit_card, color: Colors.white, size: 20.w),
+                ),
+                SizedBox(width: 12.w),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Subscription',
+                      style: GoogleFonts.inter(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textColor,
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      'No active plan',
+                      style: GoogleFonts.inter(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.boxTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 20.h),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  await Get.to(() => SubscriptionPage());
+                  // Refresh profile data when returning from subscription page
+                  controller.fetchProfile();
+                  controller.fetchOnlySubscription();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.buttonColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                  padding: EdgeInsets.symmetric(vertical: 14.h),
+                ),
+                child: Text('Get Subscription', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -221,7 +330,7 @@ class ProfilePage extends StatelessWidget {
                         ),
                         SizedBox(height: 4.h),
                         Text(
-                          'Pro Plan',
+                          plan?.title ?? 'Pro Plan',
                           style: GoogleFonts.inter(
                             fontSize: 24.sp,
                             fontWeight: FontWeight.w700,
@@ -268,7 +377,7 @@ class ProfilePage extends StatelessWidget {
                             ),
                             SizedBox(height: 4.h),
                             Text(
-                              'Unlimited',
+                              plan?.maxItems == null ? 'Unlimited' : 'Up to ${plan!.maxItems}',
                               style: GoogleFonts.inter(
                                 fontSize: 14.sp,
                                 fontWeight: FontWeight.w700,
@@ -291,7 +400,7 @@ class ProfilePage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Team Members',
+                              'Billing Cycle',
                               style: GoogleFonts.inter(
                                 fontSize: 11.sp,
                                 fontWeight: FontWeight.w500,
@@ -300,7 +409,7 @@ class ProfilePage extends StatelessWidget {
                             ),
                             SizedBox(height: 4.h),
                             Text(
-                              'Up to 10',
+                              subscription?.type ?? 'N/A',
                               style: GoogleFonts.inter(
                                 fontSize: 14.sp,
                                 fontWeight: FontWeight.w700,
@@ -316,22 +425,53 @@ class ProfilePage extends StatelessWidget {
                 SizedBox(height: 20.h),
                 Divider(color: Colors.white.withOpacity(0.3), height: 1),
                 SizedBox(height: 16.h),
-                Text(
-                  'Next billing date',
-                  style: GoogleFonts.inter(
-                    fontSize: 11.sp,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white.withOpacity(0.8),
-                  ),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  'April 2, 2026',
-                  style: GoogleFonts.inter(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Next billing date',
+                          style: GoogleFonts.inter(
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white.withOpacity(0.8),
+                          ),
+                        ),
+                        SizedBox(height: 2.h),
+                        Text(
+                          subscription?.endDate != null 
+                              ? "${subscription!.endDate.day}/${subscription.endDate.month}/${subscription.endDate.year}"
+                              : 'April 2, 2026',
+                          style: GoogleFonts.inter(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    InkWell(
+                      onTap: () => _showCancelDialog(context, controller),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(24.r),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: GoogleFonts.inter(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -372,6 +512,59 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showCancelDialog(BuildContext context, ProfileController controller) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
+        contentPadding: EdgeInsets.all(24.w),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Are You Sure You Want To\nCancel Subscription?',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textColor,
+              ),
+            ),
+            SizedBox(height: 24.h),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Get.back();
+                  controller.cancelSubscription();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00388D), // Dark blue from screenshot
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                ),
+                child: Text('Yes', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            SizedBox(height: 12.h),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Get.back(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00388D), // Dark blue from screenshot
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                ),
+                child: Text('No', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

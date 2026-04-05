@@ -414,6 +414,12 @@ class ApiService {
     return await get(ApiEndpoints.auditReports);
   }
 
+  /// Complete Event
+  static Future<http.Response> completeEvent(String eventId) async {
+    final url = ApiEndpoints.eventUpdateComplete.replaceFirst(':id', eventId);
+    return await patch(url, {});
+  }
+
   /// Get Audits
   static Future<http.Response> getAudits(String eventId) async {
     final url = ApiEndpoints.eventAudit.replaceFirst(':eventId', eventId);
@@ -504,5 +510,35 @@ class ApiService {
         .replaceFirst(':id', auditId)
         .replaceFirst(':itemId', itemId);
     return await patch(url, {});
+  }
+
+  // ================= SUBSCRIPTION METHODS =================
+
+  /// Get Subscription Plans
+  static Future<http.Response> getSubscriptionPlans() async {
+    return await get(ApiEndpoints.subscriptionPlans);
+  }
+
+  /// Get User Subscription
+  static Future<http.Response> getSubscription() async {
+    return await get(ApiEndpoints.subscription);
+  }
+
+  /// Create Subscription Checkout Session
+  static Future<http.Response> createCheckoutSession({
+    required String planId,
+    required String type, // MONTHLY or YEARLY
+  }) async {
+    final data = {
+      'planId': planId,
+      'type': type,
+    };
+    return await post(ApiEndpoints.subscriptionCheckout, data);
+  }
+
+  /// Cancel User Subscription
+  static Future<http.Response> cancelSubscription(String id) async {
+    final url = ApiEndpoints.subscriptionCancel.replaceFirst(':id', id);
+    return await delete(url);
   }
 }

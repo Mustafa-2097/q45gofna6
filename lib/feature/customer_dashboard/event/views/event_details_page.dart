@@ -8,11 +8,11 @@ import '../../../../core/constant/widgets/common_image.dart';
 import '../../../../core/constant/app_colors.dart';
 import '../controllers/event_controller.dart';
 import 'new_event_page.dart';
-import 'add_kit_page.dart';
 import 'capture_before_image_page.dart';
 import 'capture_after_image_page.dart';
 import 'ai_audit_page.dart';
 import '../models/event_model.dart';
+import '../../dashboard/dashboard.dart';
 
 class EventDetailsPage extends StatefulWidget {
   final EventModel event;
@@ -59,7 +59,17 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
 
                       //_buildEventKit(),
                       // edit event section method will be here
-                      PrimaryButton(text: "Mark as Complete", onPressed: () {}),
+                      PrimaryButton(
+                        text: "Mark as Complete",
+                        onPressed: widget.event.status.toUpperCase() == 'COMPLETED'
+                            ? null
+                            : () async {
+                                final success = await controller.completeEvent(widget.event.id);
+                                if (success) {
+                                  Get.offAll(() => const CustomerDashboard(initialIndex: 0));
+                                }
+                              },
+                      ),
                       SizedBox(height: 30.h),
                     ],
                   ),

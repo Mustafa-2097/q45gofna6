@@ -50,4 +50,10 @@ class ApiEndpoints {
   static const String auditReports = '$baseUrl/audits/reports';
   static const String missingItems = '$baseUrl/events/:id/missings';
   static const String revokeMissingItem = '$baseUrl/audits/:id/revoke/:itemId';
+
+  /// Subscription
+  static const String subscription = '$baseUrl/subscription';
+  static const String subscriptionCancel = '$baseUrl/subscription/cancel/:id';
+  static const String subscriptionCheckout = '$baseUrl/subscription/checkout';
+  static const String subscriptionPlans = '$baseUrl/subscription-plans';
 }

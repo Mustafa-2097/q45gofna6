@@ -108,7 +108,10 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
 
                   final event = await controller.createEvent();
                   if (event != null) {
-                    Get.offAll(() => const CustomerDashboard(initialIndex: 0));
+                    // Navigate back to the Dashboard first, then push Details.
+                    // This clears the NewEventPage and SelectEventItemsPage stack.
+                    Get.until((route) => Get.currentRoute == '/CustomerDashboard');
+                    Get.to(() => EventDetailsPage(event: event));
                   }
                 },
               ),

@@ -5,6 +5,7 @@ import 'package:q45gofna6/feature/customer_dashboard/event/views/event_page.dart
 import 'package:q45gofna6/feature/customer_dashboard/inventory/controllers/inventory_controller.dart';
 import 'package:q45gofna6/feature/customer_dashboard/inventory/views/inventory_page.dart';
 import 'package:q45gofna6/feature/customer_dashboard/reports/views/reports_page.dart';
+import '../profile/controllers/profile_controller.dart';
 import '../home/views/home_page.dart';
 import '../profile/views/profile_page.dart';
 import '../event/controllers/event_controller.dart';
@@ -42,6 +43,16 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
     setState(() {
       _selectedIndex = index;
     });
+    // Trigger refresh when Profile tab is selected (index 4)
+    if (index == 4) {
+      try {
+        final profileController = Get.find<ProfileController>();
+        profileController.fetchProfile();
+        profileController.fetchOnlySubscription();
+      } catch (e) {
+        debugPrint('ProfileController not yet initialized: $e');
+      }
+    }
   }
 
   @override

@@ -1,9 +1,12 @@
+import '../../subscription/models/subscription_model.dart';
+
 class ProfileModel {
   final String id;
   final String email;
   final String role;
   final String status;
   final ProfileData profile;
+  final UserSubscription? subscription;
 
   ProfileModel({
     required this.id,
@@ -11,6 +14,7 @@ class ProfileModel {
     required this.role,
     required this.status,
     required this.profile,
+    this.subscription,
   });
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +24,9 @@ class ProfileModel {
       role: json['role'] ?? '',
       status: json['status'] ?? '',
       profile: ProfileData.fromJson(json['profile'] ?? {}),
+      subscription: json['activeSubscription'] != null 
+          ? UserSubscription.fromJson(json['activeSubscription']) 
+          : (json['subscription'] != null ? UserSubscription.fromJson(json['subscription']) : null),
     );
   }
 }
