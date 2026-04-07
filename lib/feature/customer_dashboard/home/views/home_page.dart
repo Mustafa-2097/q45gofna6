@@ -9,6 +9,7 @@ import '../../event/views/new_event_page.dart';
 import '../../event/views/event_page.dart';
 import '../../event/views/event_details_page.dart';
 import '../../event/controllers/event_controller.dart';
+import '../../inventory/views/inventory_page.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
@@ -121,7 +122,7 @@ class HomePage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16.r),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -163,53 +164,56 @@ class HomePage extends StatelessWidget {
         ),
         SizedBox(width: 16.w),
         Expanded(
-          child: Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16.r),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(12.w),
-                  decoration: BoxDecoration(
-                    color: AppColors.stockColor,
-                    borderRadius: BorderRadius.circular(12.r),
+          child: InkWell(
+            onTap: () => Get.to(() => InventoryPage(showBackButton: true)),
+            child: Container(
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  child: Icon(
-                    Icons.inventory_2_outlined,
-                    color: AppColors.buttonColor,
-                    size: 24.w,
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.stockColor,
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Icon(
+                      Icons.inventory_2_outlined,
+                      color: AppColors.buttonColor,
+                      size: 24.w,
+                    ),
                   ),
-                ),
-                SizedBox(height: 12.h),
-                Text(
-                  'Inventory',
-                  style: GoogleFonts.inter(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textColor,
+                  SizedBox(height: 12.h),
+                  Text(
+                    'Inventory',
+                    style: GoogleFonts.inter(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textColor,
+                    ),
                   ),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  'Manage items',
-                  style: GoogleFonts.inter(
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.boxTextColor,
+                  SizedBox(height: 4.h),
+                  Text(
+                    'Manage items',
+                    style: GoogleFonts.inter(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.boxTextColor,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -365,7 +369,6 @@ class HomePage extends StatelessWidget {
               children: recentEvents.asMap().entries.map((entry) {
                 final index = entry.key;
                 final event = entry.value;
-                final bool isLast = index == recentEvents.length - 1;
 
                 // Determine dynamic status values
                 final bool isActive = event.status == 'Active';

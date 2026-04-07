@@ -7,6 +7,7 @@ import 'package:q45gofna6/feature/customer_dashboard/inventory/models/inventory_
 class InventoryController extends GetxController {
   final categories = <String>[].obs;
   final categoryMap = <String, String>{}.obs;
+  final categoryEditableMap = <String, bool>{}.obs;
   final selectedCategory = 'All'.obs;
   final searchQuery = ''.obs;
   var isLoading = false.obs;
@@ -47,15 +48,19 @@ class InventoryController extends GetxController {
         final List<dynamic> items = data['data'] ?? [];
         categories.clear();
         categoryMap.clear();
+        categoryEditableMap.clear();
         
         categories.add('All');
+        categoryEditableMap['All'] = false;
         
         for (var item in items) {
           final String name = item['name'] as String;
           final String? id = item['_id'] as String? ?? item['id'] as String?;
+          final bool isEditable = item['editable'] as bool? ?? true;
           categories.add(name);
           if (id != null) {
             categoryMap[name] = id;
+            categoryEditableMap[name] = isEditable;
           }
         }
         

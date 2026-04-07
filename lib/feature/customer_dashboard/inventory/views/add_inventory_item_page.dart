@@ -326,6 +326,61 @@ class _AddInventoryItemPageState extends State<AddInventoryItemPage> {
     );
   }
 
+  void _showImageSourceActionSheet() {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(20.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20.r),
+            topRight: Radius.circular(20.r),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Select Image Source',
+              style: GoogleFonts.inter(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textColor,
+              ),
+            ),
+            SizedBox(height: 20.h),
+            ListTile(
+              leading: Icon(Icons.photo_library, color: AppColors.buttonColor),
+              title: Text('Gallery', style: GoogleFonts.inter(fontSize: 16.sp, color: AppColors.textColor)),
+              onTap: () {
+                Get.back();
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.camera_alt, color: AppColors.buttonColor),
+              title: Text('Camera', style: GoogleFonts.inter(fontSize: 16.sp, color: AppColors.textColor)),
+              onTap: () {
+                Get.back();
+                _pickImage(ImageSource.camera);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: source);
+    if (image != null) {
+      setState(() {
+        selectedImage = image;
+      });
+    }
+  }
+
   Widget _buildPhotoUpload() {
     final hasNewImage = selectedImage != null;
     final existingImageUrl = widget.editItem?.cleanedImageUrl;
@@ -333,15 +388,7 @@ class _AddInventoryItemPageState extends State<AddInventoryItemPage> {
     final hasAnyImage = hasNewImage || hasExistingImage;
 
     return GestureDetector(
-      onTap: () async {
-        final picker = ImagePicker();
-        final image = await picker.pickImage(source: ImageSource.gallery);
-        if (image != null) {
-          setState(() {
-            selectedImage = image;
-          });
-        }
-      },
+      onTap: _showImageSourceActionSheet,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(

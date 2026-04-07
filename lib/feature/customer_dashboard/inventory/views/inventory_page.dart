@@ -11,7 +11,8 @@ import 'add_inventory_item_page.dart';
 import 'widgets/add_category_dialog.dart';
 
 class InventoryPage extends StatelessWidget {
-  InventoryPage({super.key});
+  final bool showBackButton;
+  InventoryPage({super.key, this.showBackButton = false});
   final InventoryController controller = Get.find<InventoryController>();
   final TextEditingController searchController = TextEditingController();
   final ScrollController scrollController = ScrollController();
@@ -56,36 +57,39 @@ class InventoryPage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Master Inventory',
-                    style: GoogleFonts.inter(
-                      fontSize: 24.sp,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Get.dialog(
-                        const AddCategoryDialog(),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1B4E9B),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                      minimumSize: Size.zero,
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Add Category',
-                      style: GoogleFonts.inter(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        if (showBackButton) ...[
+                          InkWell(
+                            onTap: () => Get.back(),
+                            child: Container(
+                              padding: EdgeInsets.all(8.w),
+                              margin: EdgeInsets.only(right: 12.w),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.arrow_back,
+                                color: AppColors.textColor,
+                                size: 20.w,
+                              ),
+                            ),
+                          ),
+                        ],
+                        Flexible(
+                          child: Text(
+                            'Master Inventory',
+                            style: GoogleFonts.inter(
+                              fontSize: 24.sp,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -93,13 +97,39 @@ class InventoryPage extends StatelessWidget {
               SizedBox(height: 24.h),
               _buildValueCard(),
               SizedBox(height: 24.h),
-              Text(
-                'Inventory',
-                style: GoogleFonts.inter(
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textColor,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Inventory',
+                    style: GoogleFonts.inter(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textColor,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      Get.dialog(
+                        const AddCategoryDialog(),
+                      );
+                    },
+                    icon: Icon(Icons.add_circle_outline, color: AppColors.buttonColor, size: 20.w),
+                    label: Text(
+                      'Add Category',
+                      style: GoogleFonts.inter(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.buttonColor,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 16.h),
               _buildSearchBar(),
@@ -130,7 +160,7 @@ class InventoryPage extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -151,7 +181,7 @@ class InventoryPage extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w400,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                       ),
                     ),
                     SizedBox(height: 8.h),
@@ -168,7 +198,7 @@ class InventoryPage extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(12.w),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(16.r),
                 ),
                 child: Icon(
@@ -180,7 +210,7 @@ class InventoryPage extends StatelessWidget {
             ],
           ),
           SizedBox(height: 20.h),
-          Container(height: 1, color: Colors.white.withOpacity(0.3)),
+          Container(height: 1, color: Colors.white.withValues(alpha: 0.3)),
           SizedBox(height: 16.h),
           RichText(
             text: TextSpan(
@@ -228,7 +258,7 @@ class InventoryPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -287,19 +317,19 @@ class InventoryPage extends StatelessWidget {
                   color: isSelected ? AppColors.buttonColor : Colors.white,
                   borderRadius: BorderRadius.circular(20.r),
                   border: Border.all(
-                    color: isSelected ? AppColors.buttonColor : Colors.grey.withOpacity(0.2),
+                    color: isSelected ? AppColors.buttonColor : Colors.grey.withValues(alpha: 0.2),
                     width: 1,
                   ),
                   boxShadow: [
                     if (isSelected)
                       BoxShadow(
-                        color: AppColors.buttonColor.withOpacity(0.3),
+                        color: AppColors.buttonColor.withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       )
                     else
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -316,7 +346,7 @@ class InventoryPage extends StatelessWidget {
                         color: isSelected ? Colors.white : AppColors.textColor,
                       ),
                     ),
-                    if (category != 'All') ...[
+                    if (category != 'All' && (controller.categoryEditableMap[category] ?? true)) ...[
                       SizedBox(width: 4.w),
                       PopupMenuButton<String>(
                         padding: EdgeInsets.zero,
@@ -501,7 +531,7 @@ class InventoryPage extends StatelessWidget {
                 autofocus: true,
                 decoration: InputDecoration(
                   hintText: 'Enter category name',
-                  hintStyle: GoogleFonts.inter(fontSize: 14.sp, color: AppColors.boxTextColor.withOpacity(0.5)),
+                  hintStyle: GoogleFonts.inter(fontSize: 14.sp, color: AppColors.boxTextColor.withValues(alpha: 0.5)),
                   contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
