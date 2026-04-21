@@ -106,6 +106,8 @@ class ItemCardWidget extends StatelessWidget {
                 SizedBox(height: 2.h),
                 Text(
                   category,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.inter(
                     fontSize: 10.sp,
                     color: AppColors.boxTextColor,

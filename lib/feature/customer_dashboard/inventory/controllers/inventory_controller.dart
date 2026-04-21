@@ -254,8 +254,8 @@ class InventoryController extends GetxController {
     required String name,
     required double cost,
     required int stock,
-    required String categoryId,
-    String? imagePath,
+    required List<String> categoryIds,
+    List<String>? imagePaths,
   }) async {
     EasyLoading.show(status: 'Adding inventory item...');
     try {
@@ -263,12 +263,12 @@ class InventoryController extends GetxController {
         'name': name,
         'cost': cost,
         'stock': stock,
-        'categoryId': categoryId,
+        'categoryIds': categoryIds,
       };
 
       final response = await ApiService.createInventoryItemWithImage(
         data: requestData,
-        imagePath: imagePath,
+        imagePaths: imagePaths,
       );
 
       final responseBody = await response.stream.bytesToString();
@@ -298,8 +298,8 @@ class InventoryController extends GetxController {
     required String name,
     required double cost,
     required int stock,
-    required String categoryId,
-    String? imagePath,
+    required List<String> categoryIds,
+    List<String>? imagePaths,
   }) async {
     EasyLoading.show(status: 'Updating inventory item...');
     try {
@@ -307,13 +307,13 @@ class InventoryController extends GetxController {
         'name': name,
         'cost': cost,
         'stock': stock,
-        'categoryId': categoryId,
+        'categoryIds': categoryIds,
       };
 
       final response = await ApiService.updateInventoryItemWithImage(
         id: id,
         data: requestData,
-        imagePath: imagePath,
+        imagePaths: imagePaths,
       );
 
       final responseBody = await response.stream.bytesToString();

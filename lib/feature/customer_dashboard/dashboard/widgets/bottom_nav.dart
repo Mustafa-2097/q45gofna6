@@ -87,9 +87,7 @@ class BottomNavBar extends StatelessWidget {
               isSelected
                   ? filledIcon
                   : outlinedIcon, // ✅ Use filled icon when selected
-              color: isSelected ? AppColors.primaryColor : AppColors.textColor,
-              width: 26.w,
-              height: 26.h,
+              //color: isSelected ? AppColors.primaryColor : AppColors.textColor,
             ),
             SizedBox(height: 4.h),
             Text(

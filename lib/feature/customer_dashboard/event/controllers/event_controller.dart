@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:q45gofna6/core/network/api_service.dart';
 import 'package:q45gofna6/feature/customer_dashboard/event/models/event_model.dart';
 
+import '../../inventory/controllers/inventory_controller.dart';
+
 class EventController extends GetxController {
   final tabs = ['All', 'Active', 'Completed'].obs;
   final selectedTab = 'All'.obs;
@@ -20,6 +22,7 @@ class EventController extends GetxController {
   final selectedItems = <String>[].obs; // IDs of selected inventory items
   final selectedItemQuantities =
       <String, int>{}.obs; // Quantities of selected items
+  final selectedCategories = <String>[].obs; // Names of selected categories
   String? editEventId;
   String? existingImageUrl;
 
@@ -176,9 +179,9 @@ class EventController extends GetxController {
     }
   }
 
-  Future<void> pickImage() async {
+  Future<void> pickImage(ImageSource source) async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery);
+    final image = await picker.pickImage(source: source);
     if (image != null) {
       selectedImagePath.value = image.path;
     }
@@ -211,6 +214,7 @@ class EventController extends GetxController {
         'date': dateController.text.trim(),
         'note': noteController.text.trim(),
         'status': selectedStatus.value,
+        'categoryIds': selectedCategories.map((name) => Get.find<InventoryController>().categoryMap[name]).whereType<String>().toList(),
         'items': formattedItems,
       };
 
@@ -386,6 +390,7 @@ class EventController extends GetxController {
     selectedImagePath.value = '';
     selectedItems.clear();
     selectedItemQuantities.clear();
+    selectedCategories.clear();
   }
 
   void toggleItemSelection(String id) {

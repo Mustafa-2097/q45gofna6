@@ -266,7 +266,7 @@ class ApiService {
   /// Create Inventory Item
   static Future<http.StreamedResponse> createInventoryItemWithImage({
     required Map<String, dynamic> data,
-    String? imagePath,
+    List<String>? imagePaths,
   }) async {
     final headers = await _getHeaders();
     final request = http.MultipartRequest(
@@ -281,8 +281,10 @@ class ApiService {
 
     request.fields['data'] = jsonEncode(data);
 
-    if (imagePath != null && imagePath.isNotEmpty) {
-      request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+    if (imagePaths != null && imagePaths.isNotEmpty) {
+      for (var path in imagePaths) {
+        request.files.add(await http.MultipartFile.fromPath('image', path));
+      }
     }
 
     debugPrint('POST Multipart URL: ${ApiEndpoints.inventory}');
@@ -295,7 +297,7 @@ class ApiService {
   static Future<http.StreamedResponse> updateInventoryItemWithImage({
     required String id,
     required Map<String, dynamic> data,
-    String? imagePath,
+    List<String>? imagePaths,
   }) async {
     final headers = await _getHeaders();
     final url = ApiEndpoints.inventoryUpdate.replaceFirst(':id', id);
@@ -308,8 +310,10 @@ class ApiService {
 
     request.fields['data'] = jsonEncode(data);
 
-    if (imagePath != null && imagePath.isNotEmpty) {
-      request.files.add(await http.MultipartFile.fromPath('image', imagePath));
+    if (imagePaths != null && imagePaths.isNotEmpty) {
+      for (var path in imagePaths) {
+        request.files.add(await http.MultipartFile.fromPath('image', path));
+      }
     }
 
     debugPrint('PATCH Multipart URL: $url');

@@ -471,7 +471,7 @@ class InventoryPage extends StatelessWidget {
   Widget _buildInventoryItem(BuildContext context, InventoryItem item) {
     return ItemCardWidget(
       name: item.name,
-      category: item.category,
+      category: item.categories.join(', '),
       price: '\$${item.cost}',
       imageUrl: item.cleanedImageUrl,
       stock: item.stock,
