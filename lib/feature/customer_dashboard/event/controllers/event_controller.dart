@@ -121,6 +121,43 @@ class EventController extends GetxController {
     }
   }
 
+  Future<void> fetchItemsBySelectedCategories() async {
+    if (selectedCategories.isEmpty) return;
+
+    final invController = Get.find<InventoryController>();
+    final categoryIds = selectedCategories
+        .map((catName) => invController.categoryMap[catName])
+        .where((id) => id != null)
+        .cast<String>()
+        .toList();
+
+    if (categoryIds.isEmpty) return;
+
+    EasyLoading.show(status: 'Fetching matching items...');
+    try {
+      final response = await ApiService.getInventoryItemsByCategories(
+        categoryIds: categoryIds,
+      );
+      final data = jsonDecode(response.body);
+
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          data['success'] == true) {
+        final List<dynamic> itemIds = data['data'] ?? [];
+        selectedItems.clear();
+        for (var id in itemIds) {
+          selectedItems.add(id.toString());
+          if (!selectedItemQuantities.containsKey(id.toString())) {
+            selectedItemQuantities[id.toString()] = 1;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching items by category: $e');
+    } finally {
+      EasyLoading.dismiss();
+    }
+  }
+
   // Pagination state
   var currentPage = 1;
   final limit = 10;

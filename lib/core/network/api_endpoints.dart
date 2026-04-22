@@ -35,6 +35,7 @@ class ApiEndpoints {
   static const String inventoryUpdate = '$baseUrl/inventory-items/:id';
   static const String inventoryDelete = '$baseUrl/inventory-items/:id';
   static const String inventoryStatistics = '$baseUrl/inventory-items/statistics';
+  static const String inventoryByCategories = '$baseUrl/inventory-items/by-categories';
 
   /// Events
   static const String events = '$baseUrl/events';

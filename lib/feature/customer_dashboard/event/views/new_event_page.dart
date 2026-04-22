@@ -82,7 +82,7 @@ class NewEventPage extends StatelessWidget {
       ),
       bottomButton: PrimaryButton(
         text: "Next",
-        onPressed: () {
+        onPressed: () async {
           if (controller.dateController.text.isEmpty) {
             EasyLoading.showError('Please select event date');
             return;
@@ -104,7 +104,11 @@ class NewEventPage extends StatelessWidget {
             EasyLoading.showError('Please upload an item photo');
             return;
           }
-          Get.to(() => SelectEventItemsPage());
+
+          // Fetch items for selected categories and auto-select them
+          await controller.fetchItemsBySelectedCategories();
+
+          Get.to(() => const SelectEventItemsPage());
         },
       ),
     );
@@ -366,7 +370,7 @@ class NewEventPage extends StatelessWidget {
           }
           return Wrap(
             spacing: 8.w,
-            runSpacing: 8.h,
+            runSpacing: 4.h,
             children: [
               ...controller.selectedCategories.map((cat) => Chip(
                     label: Text(cat, style: GoogleFonts.inter(fontSize: 12.sp, color: Colors.white)),
@@ -391,9 +395,10 @@ class NewEventPage extends StatelessWidget {
 
   void _showCategorySelectionSheet(BuildContext context) {
     final invController = Get.find<InventoryController>();
-    
+    final sh = MediaQuery.of(context).size.height;
     Get.bottomSheet(
       Container(
+        height: sh * 0.9,
         padding: EdgeInsets.all(20.w),
         decoration: BoxDecoration(
           color: Colors.white,

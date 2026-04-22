@@ -333,6 +333,14 @@ class ApiService {
     return await get(ApiEndpoints.inventoryStatistics);
   }
 
+  /// Get Inventory Item IDs by Category list (POST)
+  static Future<http.Response> getInventoryItemsByCategories({
+    required List<String> categoryIds,
+  }) async {
+    final body = {'categories': categoryIds};
+    return await post(ApiEndpoints.inventoryByCategories, body);
+  }
+
   // ================= EVENTS METHODS =================
 
   /// Get Events with Pagination

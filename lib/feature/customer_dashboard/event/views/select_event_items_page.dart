@@ -28,25 +28,8 @@ class _SelectEventItemsPageState extends State<SelectEventItemsPage> {
   @override
   void initState() {
     super.initState();
-    // Fetch fresh inventory items
+    // Reset to page 1 and fresh load every time this page is visited
     inventoryController.fetchInventoryItems();
-    
-    // Auto-select items belonging to chosen categories once they are loaded
-    once(inventoryController.inventoryItems, (_) {
-      if (controller.selectedCategories.isNotEmpty) {
-        for (var item in inventoryController.inventoryItems) {
-          // Check if item has any of the selected categories
-          final hasMatchingCategory = item.categories.any(
-            (cat) => controller.selectedCategories.contains(cat),
-          );
-          
-          if (hasMatchingCategory && !controller.selectedItems.contains(item.id)) {
-            controller.toggleItemSelection(item.id);
-          }
-        }
-      }
-    });
-
     scrollController.addListener(_onScroll);
   }
 

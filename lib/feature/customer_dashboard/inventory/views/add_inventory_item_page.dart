@@ -156,7 +156,7 @@ class _AddInventoryItemPageState extends State<AddInventoryItemPage> {
             keyboardType: TextInputType.number,
           ),
           SizedBox(height: 16.h),
-          _buildCategorySelection(),
+          _buildCategorySelection(context),
           SizedBox(height: 24.h),
           Text(
             'Item Photo*',
@@ -255,98 +255,77 @@ class _AddInventoryItemPageState extends State<AddInventoryItemPage> {
     );
   }
 
-  Widget _buildCategorySelection() {
+  Widget _buildCategorySelection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Categories*',
-              style: GoogleFonts.inter(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.subTextColor,
-              ),
-            ),
-            GestureDetector(
-              onTap: _showCategorySelectionSheet,
-              child: Text(
-                'Select Multiple',
-                style: GoogleFonts.inter(
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.buttonColor,
-                ),
-              ),
-            ),
-          ],
+        Text(
+          'Select Category*',
+          style: GoogleFonts.inter(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColors.subTextColor,
+          ),
         ),
         SizedBox(height: 8.h),
         Obx(() {
           if (selectedCategories.isEmpty) {
-            return GestureDetector(
-              onTap: _showCategorySelectionSheet,
+            return InkWell(
+              onTap: () => _showCategorySelectionSheet(context),
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(color: AppColors.stockColor, width: 1),
+                  border: Border.all(color: AppColors.stockColor),
                 ),
-                child: Text(
-                  'Select Categories',
-                  style: GoogleFonts.inter(
-                    fontSize: 14.sp,
-                    color: AppColors.boxTextColor.withValues(alpha: 0.7),
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Select Categories',
+                      style: GoogleFonts.inter(
+                        fontSize: 14.sp,
+                        color: AppColors.boxTextColor.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    Icon(Icons.keyboard_arrow_down, color: AppColors.textColor, size: 20.w),
+                  ],
                 ),
               ),
             );
           }
-          return Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: AppColors.stockColor, width: 1),
-            ),
-            child: Wrap(
-              spacing: 8.w,
-              runSpacing: 8.h,
-              children: selectedCategories.map((category) {
-                return Chip(
-                  label: Text(
-                    category,
-                    style: GoogleFonts.inter(
-                      fontSize: 12.sp,
-                      color: AppColors.textColor,
-                    ),
-                  ),
-                  backgroundColor: AppColors.stockColor.withValues(alpha: 0.3),
-                  deleteIcon: Icon(Icons.close, size: 14.w),
-                  onDeleted: () {
-                    selectedCategories.remove(category);
-                  },
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.r),
-                    side: BorderSide.none,
-                  ),
-                );
-              }).toList(),
-            ),
+          return Wrap(
+            spacing: 8.w,
+            runSpacing: 4.h,
+            children: [
+              ...selectedCategories.map((cat) => Chip(
+                    label: Text(cat, style: GoogleFonts.inter(fontSize: 12.sp, color: Colors.white)),
+                    backgroundColor: AppColors.buttonColor,
+                    deleteIcon: Icon(Icons.close, size: 14.w, color: Colors.white),
+                    onDeleted: () => selectedCategories.remove(cat),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+                  )),
+              ActionChip(
+                label: Text('Add More', style: GoogleFonts.inter(fontSize: 12.sp, color: AppColors.buttonColor)),
+                onPressed: () => _showCategorySelectionSheet(context),
+                avatar: Icon(Icons.add, size: 14.w, color: AppColors.buttonColor),
+                backgroundColor: AppColors.buttonColor.withOpacity(0.1),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+              ),
+            ],
           );
         }),
       ],
     );
   }
 
-  void _showCategorySelectionSheet() {
+  void _showCategorySelectionSheet(BuildContext context) {
+    final sh = MediaQuery.of(context).size.height;
     Get.bottomSheet(
       Container(
+        height: sh * 0.9,
         padding: EdgeInsets.all(20.w),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -379,12 +358,12 @@ class _AddInventoryItemPageState extends State<AddInventoryItemPage> {
             SizedBox(height: 16.h),
             Flexible(
               child: Obx(() {
-                final availableCategories = controller.categories.where((c) => c != 'All').toList();
+                final filteredCategories = controller.categories.where((c) => c != 'All').toList();
                 return ListView.builder(
                   shrinkWrap: true,
-                  itemCount: availableCategories.length,
+                  itemCount: filteredCategories.length,
                   itemBuilder: (context, index) {
-                    final category = availableCategories[index];
+                    final category = filteredCategories[index];
                     return Obx(() {
                       final isSelected = selectedCategories.contains(category);
                       return CheckboxListTile(
@@ -436,6 +415,7 @@ class _AddInventoryItemPageState extends State<AddInventoryItemPage> {
                 ),
               ),
             ),
+            SizedBox(height: 10.h),
           ],
         ),
       ),
