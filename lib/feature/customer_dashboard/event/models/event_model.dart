@@ -100,8 +100,19 @@ class AuditModel {
     required this.checked,
   });
 
-  static String? cleanUrl(String? url) {
-    if (url == null || url.isEmpty) return null;
+  static String? cleanUrl(dynamic input) {
+    if (input == null) return null;
+    String url = '';
+    
+    // Handle List of strings (API sends list for missing items) vs single String
+    if (input is List && input.isNotEmpty) {
+      url = input[0].toString();
+    } else if (input is String) {
+      url = input;
+    }
+    
+    if (url.isEmpty) return null;
+    
     if (url.contains('localhost')) {
       url = url.replaceFirst('localhost:5000', '206.162.244.189:5005');
     } else if (url.contains('127.0.0.1')) {
@@ -130,12 +141,14 @@ class MissingItemModel {
   final String id;
   final String name;
   final String? image;
+  final String category;
   final double cost;
 
   MissingItemModel({
     required this.id,
     required this.name,
     this.image,
+    required this.category,
     required this.cost,
   });
 
@@ -144,6 +157,7 @@ class MissingItemModel {
       id: json['id'] ?? json['_id'] ?? '',
       name: json['name'] ?? '',
       image: AuditModel.cleanUrl(json['image']),
+      category: json['category'] ?? 'Equipment',
       cost: (json['cost'] as num?)?.toDouble() ?? 0.0,
     );
   }

@@ -115,44 +115,60 @@ class _AiAuditPageState extends State<AiAuditPage> {
       ),
       child: Column(
         children: [
-          // AI Audit Complete Banner
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(10.w),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8F3EA),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.auto_awesome,
-                  color: const Color(0xFF4CAF50),
-                  size: 24.w,
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'AI Audit Complete',
-                    style: GoogleFonts.inter(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textColor,
-                    ),
+          // AI Audit Complete Banner - Now Reactive to match response data
+          Obx(() {
+            final report = controller.auditReport.value;
+            final audits = controller.audits;
+
+            // Determine if all individual audits are checked
+            final bool isAllChecked =
+                audits.isNotEmpty && audits.every((a) => a.checked);
+            final int totalItems = (report?.found ?? 0) + (report?.missing ?? 0);
+
+            return Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10.w),
+                  decoration: BoxDecoration(
+                    color: isAllChecked
+                        ? const Color(0xFFE8F3EA)
+                        : const Color(0xFFFFF7ED),
+                    shape: BoxShape.circle,
                   ),
-                  Text(
-                    'Results ready',
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      color: AppColors.boxTextColor,
-                    ),
+                  child: Icon(
+                    isAllChecked ? Icons.auto_awesome : Icons.pending_actions,
+                    color: isAllChecked
+                        ? const Color(0xFF4CAF50)
+                        : const Color(0xFFF97316),
+                    size: 24.w,
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+                SizedBox(width: 12.w),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isAllChecked ? 'AI Audit Complete' : 'Audit In Progress',
+                      style: GoogleFonts.inter(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textColor,
+                      ),
+                    ),
+                    Text(
+                      isAllChecked
+                          ? '$totalItems items processed'
+                          : 'Waiting for results',
+                      style: GoogleFonts.inter(
+                        fontSize: 14.sp,
+                        color: AppColors.boxTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          }),
           SizedBox(height: 20.h),
           // Stats — driven by real report data
           Obx(() {
@@ -314,7 +330,7 @@ class _AiAuditPageState extends State<AiAuditPage> {
                                     ),
                                   ),
                                   Text(
-                                    'Equipment', // change this with "category": "Ceremony", -> like others name, image, cost
+                                    firstMissing.category, // Use dynamic category from response data
                                     style: GoogleFonts.inter(
                                       fontSize: 12.sp,
                                       color: AppColors.boxTextColor,
